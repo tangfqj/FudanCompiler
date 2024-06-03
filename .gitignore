@@ -1,0 +1,16 @@
+/cmake-build-debug/
+.idea
+test
+.DS_Store
+.vscode
+build
+*.src
+*.ast
+*.output
+*.xml
+*.ll
+*.irp
+*.stm
+*.ins
+*.cfg
+*.ssa
