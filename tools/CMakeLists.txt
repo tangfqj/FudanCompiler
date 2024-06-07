@@ -3,6 +3,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result")
 set(LIBS
     frontend
     backend_llvm
+    backend_arm
     optimizer
     utils
 )
