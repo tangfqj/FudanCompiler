@@ -2,9 +2,12 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result")
 
 set(LIBS
     frontend
+    backend_llvm
     optimizer
     utils
 )
+
+add_dependencies(${LIBS} vendor_libsysy)
 
 set(main "main")
 add_executable(${main} main.c)
