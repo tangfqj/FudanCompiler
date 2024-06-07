@@ -422,7 +422,7 @@ void collectInstructions(G_nodeList bg) {
   }
   AS_instrList bh = bodyil_SSA;
   AS_instrList bf = NULL;
-  while (bodyil_SSA) { // TODO
+  while (bodyil_SSA) {
     AS_instr curr = bodyil_SSA->head;
     if (isPhiFunction(curr)) {
       bf->tail = bodyil_SSA->tail;
