@@ -15,3 +15,4 @@ include_directories(${PROJECT_BINARY_DIR}/include/frontend/)
 # 递归构建
 add_subdirectory(lib)
 add_subdirectory(tools)
+add_subdirectory(vendor)
