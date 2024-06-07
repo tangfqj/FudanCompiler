@@ -1,11 +1,12 @@
 /* IR+ for 2024 with types */
 #include "tigerirp.h"
 
-T_funcDecl T_FuncDecl(string name, Temp_tempList tl, T_stm s) {
+T_funcDecl T_FuncDecl(string name, Temp_tempList tl, T_stm s, T_type ret_type) {
   T_funcDecl p = (T_funcDecl) checked_malloc (sizeof * p);
   p->name = name;
   p->args = tl;
   p->stm = s;
+  p->ret_type = ret_type;
   return p;
 }
 
@@ -53,10 +54,14 @@ T_stm T_Jump(Temp_label label) {
 }
 
 T_stm T_Cjump(T_relOp op, T_exp left, T_exp right,
-        Temp_label t, Temp_label f) {
+              Temp_label t, Temp_label f) {
   T_stm p = (T_stm) checked_malloc(sizeof * p);
   p->kind = T_CJUMP;
   p->u.CJUMP.op = op;
+  if (left->type == T_float || right->type == T_float) {
+    left = T_Cast(left, T_float);
+    right = T_Cast(right, T_float);
+  }
   p->u.CJUMP.left = left;
   p->u.CJUMP.right = right;
   p->u.CJUMP.t = t;
@@ -87,11 +92,14 @@ T_stm T_Exp(T_exp exp) {
 }
 
 T_exp T_Binop(T_binOp op, T_exp left, T_exp right) {
-  T_exp p = (T_exp) checked_malloc(sizeof * p);
+  T_exp p = (T_exp)checked_malloc(sizeof *p);
   p->kind = T_BINOP;
-  assert(left->type == T_int || left->type == T_float);
-  assert(right->type == T_int || right->type == T_float);
-  p->type = (left->type == T_float || right->type == T_float) ? T_float : T_int;
+  p->type = T_int;
+  if (left->type == T_float || right->type == T_float) {
+    left = T_Cast(left, T_float);
+    right = T_Cast(right, T_float);
+    p->type = T_float;
+  }
   p->u.BINOP.op = op;
   p->u.BINOP.left = left;
   p->u.BINOP.right = right;
@@ -177,26 +185,26 @@ T_exp T_Cast(T_exp exp, T_type type) {
 
 T_relOp T_notRel(T_relOp r) {
   switch (r) {
-  case T_eq:
-    return T_ne;
-  case T_ne:
-    return T_eq;
-  case T_lt:
-    return T_ge;
-  case T_ge:
-    return T_lt;
-  case T_gt:
-    return T_le;
-  case T_le:
-    return T_gt;
-  case T_ult:
-    return T_uge;
-  case T_uge:
-    return T_ult;
-  case T_ule:
-    return T_ugt ;
-  case T_ugt:
-    return T_ule;
+    case T_eq:
+      return T_ne;
+    case T_ne:
+      return T_eq;
+    case T_lt:
+      return T_ge;
+    case T_ge:
+      return T_lt;
+    case T_gt:
+      return T_le;
+    case T_le:
+      return T_gt;
+    case T_ult:
+      return T_uge;
+    case T_uge:
+      return T_ult;
+    case T_ule:
+      return T_ugt ;
+    case T_ugt:
+      return T_ule;
   }
   assert(0);
   return 0;
@@ -204,26 +212,26 @@ T_relOp T_notRel(T_relOp r) {
 
 T_relOp T_commute(T_relOp r) {
   switch (r) {
-  case T_eq:
-    return T_eq;
-  case T_ne:
-    return T_ne;
-  case T_lt:
-    return T_gt;
-  case T_ge:
-    return T_le;
-  case T_gt:
-    return T_lt ;
-  case T_le:
-    return T_ge;
-  case T_ult:
-    return T_ugt;
-  case T_uge:
-    return T_ule;
-  case T_ule:
-    return T_uge ;
-  case T_ugt:
-    return T_ult;
+    case T_eq:
+      return T_eq;
+    case T_ne:
+      return T_ne;
+    case T_lt:
+      return T_gt;
+    case T_ge:
+      return T_le;
+    case T_gt:
+      return T_lt ;
+    case T_le:
+      return T_ge;
+    case T_ult:
+      return T_ugt;
+    case T_uge:
+      return T_ule;
+    case T_ule:
+      return T_uge ;
+    case T_ugt:
+      return T_ult;
   }
   assert(0);
   return 0;

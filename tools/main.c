@@ -103,7 +103,7 @@ int main(int argc, const char* argv[]) {
     fclose(stdout);
 
     // llvm instruction selection
-    AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->rettype);
+    AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->ret_type);
     AS_blockList bodybl = NULL;
     for (C_stmListList sll = b.stmLists; sll; sll = sll->tail) {
       AS_instrList bil = llvmbody(sll->head);
@@ -111,7 +111,7 @@ int main(int argc, const char* argv[]) {
       AS_blockList bbl = AS_BlockList(AS_Block(bil), NULL);
       bodybl = AS_BlockSplice(bodybl, bbl);
     }
-    AS_instrList epilogil = llvmpilog(b.label);
+    AS_instrList epilogil = llvmepilog(b.label);
 
     G_nodeList bg = Create_bg(bodybl);
 

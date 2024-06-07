@@ -44,6 +44,7 @@ struct T_funcDecl_ {
   string name;
   Temp_tempList args;
   T_stm stm;
+  T_type ret_type;
 };
 struct T_funcDeclList_ {
   T_funcDecl head;
@@ -51,17 +52,17 @@ struct T_funcDeclList_ {
 };
 
 typedef enum {T_plus, T_minus, T_mul, T_div,
-        T_and, T_or, T_lshift, T_rshift, T_arshift, T_xor
-       } T_binOp ;
+               T_and, T_or, T_lshift, T_rshift, T_arshift, T_xor
+} T_binOp ;
 
 typedef enum  {T_eq, T_ne, T_lt, T_gt, T_le, T_ge,
-         T_ult, T_ule, T_ugt, T_uge
-        } T_relOp;
+               T_ult, T_ule, T_ugt, T_uge
+} T_relOp;
 
 struct T_stm_ {
   enum {T_SEQ, T_LABEL, T_JUMP, T_CJUMP, T_MOVE,
-      T_EXP, T_RETURN
-     } kind;
+         T_EXP, T_RETURN
+  } kind;
   union {
     struct {
       T_stm left, right;
@@ -84,8 +85,8 @@ struct T_stm_ {
 
 struct T_exp_ {
   enum {T_BINOP, T_MEM, T_TEMP, T_ESEQ, T_NAME,
-      T_CONST, T_CALL, T_ExtCALL, T_CAST
-     } kind; 
+         T_CONST, T_CALL, T_ExtCALL, T_CAST
+  } kind;
   T_type type;
   union {
     struct {
@@ -120,7 +121,7 @@ T_expList T_ExpList (T_exp head, T_expList tail);
 T_stmList T_StmList (T_stm head, T_stmList tail);
 
 T_funcDeclList T_FuncDeclList(T_funcDecl, T_funcDeclList);
-T_funcDecl T_FuncDecl(string, Temp_tempList, T_stm);
+T_funcDecl T_FuncDecl(string, Temp_tempList, T_stm, T_type);
 
 T_stm T_Seq(T_stm left, T_stm right);
 T_stm T_Label(Temp_label);

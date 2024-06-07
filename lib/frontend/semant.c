@@ -378,7 +378,8 @@ T_funcDecl transA_MethodDecl(FILE *out, S_table mtbl, A_methodDecl md) {
   }
   S_endScope(venv);
   S_symbol mid = S_link(mety->u.meth.from, S_Symbol(md->id));
-  return Tr_ClassMethod(S_name(mid), paras, vdl, sl);
+  T_type ret = mety->u.meth.ret;
+  return Tr_ClassMethod(S_name(mid), paras, vdl, sl, ret);
 }
 
 Temp_tempList transA_FormalList(FILE *out, Ty_fieldList fieldList,

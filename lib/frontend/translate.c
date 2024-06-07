@@ -164,11 +164,11 @@ T_funcDecl Tr_MainMethod(Tr_exp vdl, Tr_exp sl) {
   } else {
     s = T_Seq(unNx(vdl), unNx(sl));
   }
-  return T_FuncDecl(String("main"), NULL, s);
+  return T_FuncDecl(String("main"), NULL, s, T_int);
 }
 
 T_funcDecl Tr_ClassMethod(string name, Temp_tempList paras, Tr_exp vdl,
-                          Tr_exp sl) {
+                          Tr_exp sl, T_type ret_type) {
   T_stm s;
   if (vdl == NULL && sl == NULL) {
     s = NULL;
@@ -179,7 +179,7 @@ T_funcDecl Tr_ClassMethod(string name, Temp_tempList paras, Tr_exp vdl,
   } else {
     s = T_Seq(unNx(vdl), unNx(sl));
   }
-  return T_FuncDecl(String(name), paras, s);
+  return T_FuncDecl(String(name), paras, s, ret_type);
 }
 
 // stms
