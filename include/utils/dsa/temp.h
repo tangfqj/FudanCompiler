@@ -18,6 +18,7 @@ struct Temp_temp_ {
 Temp_temp Temp_newtemp(T_type type);
 void Temp_resettemp();
 Temp_temp Temp_namedtemp(int name, T_type type);
+Temp_temp Temp_reg(int name, T_type type);
 Temp_temp this();
 
 typedef struct Temp_tempList_ *Temp_tempList;
