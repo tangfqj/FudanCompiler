@@ -90,8 +90,6 @@ PROG: MAINMETHOD CLASSDECLLIST {
 
 MAINMETHOD: PUBLIC INT MAIN '(' ')' '{' VARDECLLIST STMLIST '}' {
   $$ = A_MainMethod($1, $7, $8);
-} | INT MAIN '(' ')' '{' {
-  yyerror("Missing keyword \'public\'");
 } ;
 
 VARDECLLIST: /* empty */ {
@@ -144,8 +142,6 @@ STM: '{' STMLIST '}' {
   $$ = A_WhileStm($1, $3, NULL);
 } | EXP '=' EXP ';' {
   $$ = A_AssignStm(A_Pos($1->pos->line, $1->pos->pos), $1, $3);
-} | EXP '=' EXP ',' ';' {
-  yyerror("Extra comma in assignment statement");
 } | EXP '[' ']' '=' '{' EXPLIST '}' ';' {
   $$ = A_ArrayInit(A_Pos($1->pos->line, $1->pos->pos), $1, $6);
 } | EXP '.' ID '(' EXPLIST ')' ';' {
@@ -241,8 +237,6 @@ EXP: NUM {
   $$ = A_ClassVarExp(A_Pos($1->pos->line, $1->pos->pos), $1, $3->u.v);
 } | EXP '.' ID '(' EXPLIST ')' {
   $$ = A_CallExp(A_Pos($1->pos->line, $1->pos->pos), $1, $3->u.v, $5);
-} | EXP ',' ID {
-  yyerror("Unexpected comma in expression");
 } | EXP '[' EXP ']' {
   $$ = A_ArrayExp(A_Pos($1->pos->line, $1->pos->pos), $1, $3);
 } ;
