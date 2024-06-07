@@ -15,10 +15,19 @@
 #include "bg.h"
 #include "temp.h"
 #include "llvmgen.h"
+#include "ig.h"
 
 A_prog root;
 
 extern int yyparse();
+
+AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList bg);
+
+static void print_to_ssa_file(string file_ssa, AS_instrList il) {
+  freopen(file_ssa, "a", stdout);
+  AS_printInstrList(stdout, il, Temp_name());
+  fclose(stdout);
+}
 
 int main(int argc, const char* argv[]) {
   if (argc != 2) {
@@ -41,6 +50,16 @@ int main(int argc, const char* argv[]) {
   sprintf(file_liv, "%s.5.ins", file);
   string file_ins = checked_malloc(IR_MAXLEN);
   sprintf(file_ins, "%s.5.ins", file);
+  string file_insxml = checked_malloc(IR_MAXLEN);
+  sprintf(file_insxml, "%s.6.ins", file);
+  string file_cfg= checked_malloc(IR_MAXLEN);
+  sprintf(file_cfg, "%s.7.cfg", file);
+  string file_ssa= checked_malloc(IR_MAXLEN);
+  sprintf(file_ssa, "%s.8.ssa", file);
+  string file_arm= checked_malloc(IR_MAXLEN);
+  sprintf(file_arm, "%s.9.arm", file);
+  string file_rpi= checked_malloc(IR_MAXLEN);
+  sprintf(file_rpi, "%s.10.s", file);
 
   // lex & parse
   yyparse();
@@ -126,8 +145,90 @@ int main(int argc, const char* argv[]) {
     fprintf(stdout, "------~Final traced AS instructions~------\n");
     AS_printInstrList(stdout, il, Temp_name());
 
+    // convert AS_instrList to SSA
+    AS_instr prologi = il->head;
+    AS_instrList bodyil = il->tail;
+    il->tail = NULL;
+    AS_instrList til = bodyil;
+    AS_instr epilogi;
+    if (til->tail == NULL) {
+      epilogi = til->head;
+      bodyil = NULL;
+    } else {
+      while (til->tail->tail) {
+        til = til->tail;
+      }
+      epilogi = til->tail->head;
+      til->tail = NULL;
+    }
+
+    /* doing the control graph and print to *.8.cfg*/
+    // get the control flow and print out the control flow graph to *.8.cfg
+    G_graph fg = FG_AssemFlowGraph(bodyil);
+    freopen(file_cfg, "a", stdout);
+    fprintf(stdout, "------Flow Graph------\n");
+    fflush(stdout);
+    G_show(stdout, G_nodes(fg), (void*)FG_show);
+    fflush(stdout);
+    fclose(stdout);
+
+    // data flow analysis
+    freopen(file_cfg, "a", stdout);
+    G_nodeList lg = Liveness(G_nodes(fg));
+    freopen(file_cfg, "a", stdout);
+    fprintf(stdout, "/* ------Liveness Graph------*/\n");
+    Show_Liveness(stdout, lg);
+    fflush(stdout);
+    fclose(stdout);
+
+    G_nodeList bg = Create_bg(instrList2BL(bodyil)); // create a basic block graph
+    freopen(file_cfg, "a", stdout);
+    fprintf(stdout, "------Basic Block Graph------\n");
+    Show_bg(stdout, bg);
+    fprintf(stdout, "\n\n");
+    fflush(stdout);
+    fclose(stdout);
+
+    AS_instrList bodyil_in_SSA = AS_instrList_to_SSA(bodyil, lg, bg);
+
+    //print the AS_instrList to the ssa file
+    AS_instrList finalssa = AS_splice(AS_InstrList(prologi, bodyil_in_SSA), AS_InstrList(epilogi, NULL));
+    print_to_ssa_file(file_ssa, finalssa);
 
     fdl = fdl->tail;
   }
+  // print the runtime functions for the 7.ssa file
+  freopen(file_ssa, "a", stdout);
+  fprintf(stdout, "declare void @starttime()\n");
+  fprintf(stdout, "declare void @stoptime()\n");
+  fprintf(stdout, "declare i64* @malloc(i64)\n");
+  fprintf(stdout, "declare void @putch(i64)\n");
+  fprintf(stdout, "declare void @putint(i64)\n");
+  fprintf(stdout, "declare void @putfloat(double)\n");
+  fprintf(stdout, "declare i64 @getint()\n");
+  fprintf(stdout, "declare i64 @getch(i64)\n");
+  fprintf(stdout, "declare float @getfloat()\n");
+  fprintf(stdout, "declare i64* @getarray(i64)\n");
+  fprintf(stdout, "declare i64* @getfarray(i64)\n");
+  fprintf(stdout, "declare void @putarray(i64, i64*)\n");
+  fprintf(stdout, "declare void @putfarray(i64, i64*)\n");
+  fclose(stdout);
+
+  // print the runtime functions for the 10.s file
+  freopen(file_rpi,"a",stdout);
+  fprintf(stdout, ".global malloc\n");
+  fprintf(stdout, ".global getint\n");
+  fprintf(stdout, ".global getch\n");
+  fprintf(stdout, ".global getfloat\n");
+  fprintf(stdout, ".global getarray\n");
+  fprintf(stdout, ".global getfarray\n");
+  fprintf(stdout, ".global putint\n");
+  fprintf(stdout, ".global putch\n");
+  fprintf(stdout, ".global putfloat\n");
+  fprintf(stdout, ".global putarray\n");
+  fprintf(stdout, ".global putfarray\n");
+  fprintf(stdout, ".global starttime\n");
+  fprintf(stdout, ".global stoptime\n");
+  fclose(stdout);
   return 0;
 }
