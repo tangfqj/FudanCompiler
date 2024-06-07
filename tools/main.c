@@ -10,6 +10,11 @@
 #include "print_stm.h"
 #include "semant.h"
 #include "util.h"
+#include "assem.h"
+#include "assemblock.h"
+#include "bg.h"
+#include "temp.h"
+#include "llvmgen.h"
 
 A_prog root;
 
@@ -32,6 +37,10 @@ int main(int argc, const char* argv[]) {
   sprintf(file_irp, "%s.3.irp", file);
   string file_stm = checked_malloc(IR_MAXLEN);
   sprintf(file_stm, "%s.4.stm", file);
+  string file_liv = checked_malloc(IR_MAXLEN);
+  sprintf(file_liv, "%s.5.ins", file);
+  string file_ins = checked_malloc(IR_MAXLEN);
+  sprintf(file_ins, "%s.5.ins", file);
 
   // lex & parse
   yyparse();
@@ -92,6 +101,32 @@ int main(int argc, const char* argv[]) {
     fprintf(stdout, "\n\n");
     fflush(stdout);
     fclose(stdout);
+
+    // llvm instruction selection
+    AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->rettype);
+    AS_blockList bodybl = NULL;
+    for (C_stmListList sll = b.stmLists; sll; sll = sll->tail) {
+      AS_instrList bil = llvmbody(sll->head);
+
+      AS_blockList bbl = AS_BlockList(AS_Block(bil), NULL);
+      bodybl = AS_BlockSplice(bodybl, bbl);
+    }
+    AS_instrList epilogil = llvmpilog(b.label);
+
+    G_nodeList bg = Create_bg(bodybl);
+
+    freopen(file_ins, "a", stdout);
+    fprintf(stdout, "\n------For function %s------\n", fdl->head->name);
+    fprintf(stdout, "------Basic Block Graph------\n");
+    Show_bg(stdout, bg);
+
+    // put all the blocks into one AS list
+    AS_instrList il = AS_traceSchedule(bodybl, prologil, epilogil, FALSE);
+
+    fprintf(stdout, "------~Final traced AS instructions~------\n");
+    AS_printInstrList(stdout, il, Temp_name());
+
+
     fdl = fdl->tail;
   }
   return 0;
