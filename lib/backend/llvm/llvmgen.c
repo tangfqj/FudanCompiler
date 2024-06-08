@@ -33,10 +33,6 @@ static Temp_labelList LL(Temp_label l, Temp_labelList ll) {
   return Temp_LabelList(l, ll);
 }
 
-/* ********************************************************/
-/* YOU ARE TO IMPLEMENT THE FOLLOWING FUNCTION FOR HW9_10 */
-/* ********************************************************/
-
 AS_instrList llvmbody(T_stmList stmList) {
   if (!stmList) return NULL;
   iList = last = NULL;

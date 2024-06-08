@@ -16,6 +16,7 @@
 #include "temp.h"
 #include "llvmgen.h"
 #include "ig.h"
+#include "ssa.h"
 
 A_prog root;
 

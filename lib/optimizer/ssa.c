@@ -42,8 +42,8 @@ AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList 
   InitRename();
   renameVariable(bg->head);
   // Eliminate phi functions
-  eliminatePhiFunction(bg);
-  collectInstructions(bg);
+  //eliminatePhiFunction(bg);
+  collectInstructions_llvm(bg);
   return bodyil_SSA;
 }
 
@@ -398,7 +398,7 @@ void eliminatePhiFunction(G_nodeList bg) {
     bg = bg->tail;
   }
 }
-void collectInstructions(G_nodeList bg) {
+void collectInstructions_arm(G_nodeList bg) {
   while(bg){
     G_node h = bg->head;
     AS_block b = h->info;
@@ -436,17 +436,17 @@ void collectInstructions(G_nodeList bg) {
   bodyil_SSA = bh;
 }
 
-//void collectInstructions(G_nodeList bg){
-//  while (bg) {
-//    G_node h = bg->head;
-//    AS_block b = h->info;
-//    if (S_look(instrenv, b->label)) {
-//      AS_instrList instrs = S_look(instrenv, b->label);
-//      bodyil_SSA = AS_splice(bodyil_SSA, instrs);
-//    }
-//    bg = bg->tail;
-//  }
-//}
+void collectInstructions_llvm(G_nodeList bg){
+  while (bg) {
+    G_node h = bg->head;
+    AS_block b = h->info;
+    if (S_look(instrenv, b->label)) {
+      AS_instrList instrs = S_look(instrenv, b->label);
+      bodyil_SSA = AS_splice(bodyil_SSA, instrs);
+    }
+    bg = bg->tail;
+  }
+}
 /* Helper methods */
 static G_nodeList Intersect(G_nodeList a, G_nodeList b){
   if(!a){
