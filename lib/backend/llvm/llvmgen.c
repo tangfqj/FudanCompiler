@@ -42,7 +42,7 @@ AS_instrList llvmbody(T_stmList stmList) {
   iList = last = NULL;
   T_stmList sl;
   for (sl = stmList; sl; sl = sl->tail) {
-    munchStm(sl->head);
+    llvmMunchStm(sl->head);
   }
 
   return iList;
@@ -124,12 +124,12 @@ AS_instrList llvmepilog(Temp_label lend) {
 }
 
 /* Helper methods */
-void munchStm(T_stm s) {
+void llvmMunchStm(T_stm s) {
   string ir = (string)checked_malloc(IR_MAXLEN);
   switch (s->kind) {
     case T_SEQ:
-      munchStm(s->u.SEQ.left);
-      munchStm(s->u.SEQ.right);
+      llvmMunchStm(s->u.SEQ.left);
+      llvmMunchStm(s->u.SEQ.right);
       break;
     case T_LABEL:
       sprintf(ir, "%s:", Temp_labelstring(s->u.LABEL));
@@ -140,13 +140,13 @@ void munchStm(T_stm s) {
       emit(AS_Oper(ir, NULL, NULL, AS_Targets(LL(s->u.JUMP.jump, NULL))));
       break;
     case T_CJUMP:
-      munchCjump(s);
+      llvmMunchCjump(s);
       break;
     case T_MOVE:
-      munchMove(s);
+      llvmMunchMove(s);
       break;
     case T_EXP:
-      munchExp(s->u.EXP);
+      llvmMunchExp(s->u.EXP);
       break;
     case T_RETURN:
       if (s->u.EXP->kind == T_CONST) {
@@ -158,7 +158,7 @@ void munchStm(T_stm s) {
           emit(AS_Oper(ir, NULL, NULL, NULL));
         }
       } else {
-        Temp_temp ret = munchExp(s->u.EXP);
+        Temp_temp ret = llvmMunchExp(s->u.EXP);
         if (ret->type == T_int) {
           sprintf(ir, "ret i64 %%`s0");
           emit(AS_Oper(ir, NULL, Temp_TempList(ret, NULL), NULL));
@@ -173,20 +173,20 @@ void munchStm(T_stm s) {
   }
 }
 
-Temp_temp munchExp(T_exp e) {
+Temp_temp llvmMunchExp(T_exp e) {
   string ir = (string)checked_malloc(IR_MAXLEN);
   string ld = (string)checked_malloc(IR_MAXLEN);
   Temp_temp ret, l1, cst;
   switch (e->kind) {
     case T_BINOP:
-      return munchBinop(NULL, e);
+      return llvmMunchBinop(NULL, e);
     case T_MEM:
       l1 = Temp_newtemp(T_int);
       if (e->u.MEM->kind == T_CONST) {
         sprintf(ir, "%%`d0 = inttoptr i64 %d to i64*", e->u.MEM->u.CONST.i);
         emit(AS_Oper(ir, Temp_TempList(l1, NULL), NULL, NULL));
       } else {
-        Temp_temp loc = munchExp(e->u.MEM);
+        Temp_temp loc = llvmMunchExp(e->u.MEM);
         sprintf(ir, "%%`d0 = inttoptr i64 %%`s0 to i64*");
         emit(AS_Oper(ir, Temp_TempList(l1, NULL), Temp_TempList(loc, NULL),
                      NULL));
@@ -204,8 +204,8 @@ Temp_temp munchExp(T_exp e) {
     case T_TEMP:
       return e->u.TEMP;
     case T_ESEQ:
-      munchStm(e->u.ESEQ.stm);
-      return munchExp(e->u.ESEQ.exp);
+      llvmMunchStm(e->u.ESEQ.stm);
+      return llvmMunchExp(e->u.ESEQ.exp);
     case T_NAME:
       ret = Temp_newtemp(T_int);
       sprintf(ir, "%%`d0 = ptrtoint i64* @%s to i64",
@@ -224,14 +224,14 @@ Temp_temp munchExp(T_exp e) {
       return ret;
     case T_CALL:
       ret = Temp_newtemp(T_int);
-      munchCall(ret, e);
+      llvmMunchCall(ret, e);
       return ret;
     case T_ExtCALL:
       ret = Temp_newtemp(T_int);
-      munchExtCall(ret, e);
+      llvmMunchExtCall(ret, e);
       return ret;
     case T_CAST:
-      cst = munchExp(e->u.CAST);
+      cst = llvmMunchExp(e->u.CAST);
       if (e->type == T_int) {
         ret = Temp_newtemp(T_int);
         sprintf(ir, "%%`d0 = fptosi double %%`s0 to i64");
@@ -250,16 +250,16 @@ Temp_temp munchExp(T_exp e) {
   }
 }
 
-void munchCjump(T_stm s) {
+void llvmMunchCjump(T_stm s) {
   string ir = (string)checked_malloc(IR_MAXLEN);
   string brch = (string)checked_malloc(IR_MAXLEN);
   Temp_temp cond = Temp_newtemp(T_int);
   Temp_temp s0 = NULL, s1 = NULL;
   if (s->u.CJUMP.left->kind != T_CONST) {
-    s0 = munchExp(s->u.CJUMP.left);
+    s0 = llvmMunchExp(s->u.CJUMP.left);
   }
   if (s->u.CJUMP.right->kind != T_CONST) {
-    s1 = munchExp(s->u.CJUMP.right);
+    s1 = llvmMunchExp(s->u.CJUMP.right);
   }
   // Get the type of operands
   T_type left, right;
@@ -373,15 +373,15 @@ void munchCjump(T_stm s) {
                AS_Targets(LL(s->u.CJUMP.t, LL(s->u.CJUMP.f, NULL)))));
 }
 
-void munchMove(T_stm s) {
+void llvmMunchMove(T_stm s) {
   string ir;
   if (s->u.MOVE.dst->kind == T_MEM) {
     Temp_temp src = NULL, dst = NULL;
     if (s->u.MOVE.src->kind != T_CONST) {
-      src = munchExp(s->u.MOVE.src);
+      src = llvmMunchExp(s->u.MOVE.src);
     }
     if (s->u.MOVE.dst->u.MEM->kind != T_CONST) {
-      dst = munchExp(s->u.MOVE.dst->u.MEM);
+      dst = llvmMunchExp(s->u.MOVE.dst->u.MEM);
     }
     Temp_temp l1 = Temp_newtemp(T_int);
     if (s->u.MOVE.dst->u.MEM->kind == T_CONST) {
@@ -416,7 +416,7 @@ void munchMove(T_stm s) {
     }
   } else if (s->u.MOVE.src->kind == T_MEM) {
     Temp_temp src = NULL;
-    Temp_temp dst = munchExp(s->u.MOVE.dst);
+    Temp_temp dst = llvmMunchExp(s->u.MOVE.dst);
     Temp_temp l1 = Temp_newtemp(T_int);
     if (s->u.MOVE.src->u.MEM->kind == T_CONST) {
       ir = (string)checked_malloc(IR_MAXLEN);
@@ -424,7 +424,7 @@ void munchMove(T_stm s) {
               s->u.MOVE.src->u.MEM->u.CONST.i);
       emit(AS_Oper(ir, Temp_TempList(l1, NULL), NULL, NULL));
     } else {
-      src = munchExp(s->u.MOVE.src->u.MEM);
+      src = llvmMunchExp(s->u.MOVE.src->u.MEM);
       ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = inttoptr i64 %%`s0 to i64*");
       emit(
@@ -437,8 +437,8 @@ void munchMove(T_stm s) {
       sprintf(ir, "%%`d0 = load double, i64* %%`s0");
     emit(AS_Oper(ir, Temp_TempList(dst, NULL), Temp_TempList(l1, NULL), NULL));
   } else if (s->u.MOVE.src->kind == T_TEMP && s->u.MOVE.dst->kind == T_TEMP) {
-    Temp_temp src = munchExp(s->u.MOVE.src);
-    Temp_temp dst = munchExp(s->u.MOVE.dst);
+    Temp_temp src = llvmMunchExp(s->u.MOVE.src);
+    Temp_temp dst = llvmMunchExp(s->u.MOVE.dst);
     if (src->type == T_int && dst->type == T_int) {
       ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = add i64 0, %%`s0");
@@ -454,11 +454,11 @@ void munchMove(T_stm s) {
     Temp_temp src, dst;
     switch (s->u.MOVE.src->kind) {
       case T_BINOP:
-        dst = munchExp(s->u.MOVE.dst);
-        munchBinop(dst, s->u.MOVE.src);
+        dst = llvmMunchExp(s->u.MOVE.dst);
+        llvmMunchBinop(dst, s->u.MOVE.src);
         break;
       case T_CONST:
-        dst = munchExp(s->u.MOVE.dst);
+        dst = llvmMunchExp(s->u.MOVE.dst);
         if (s->u.MOVE.src->type == T_int) {
           ir = (string)checked_malloc(IR_MAXLEN);
           sprintf(ir, "%%`d0 = add i64 0, %d", s->u.MOVE.src->u.CONST.i);
@@ -469,16 +469,16 @@ void munchMove(T_stm s) {
         emit(AS_Oper(ir, Temp_TempList(dst, NULL), NULL, NULL));
         break;
       case T_ExtCALL:
-        dst = munchExp(s->u.MOVE.dst);
-        munchExtCall(dst, s->u.MOVE.src);
+        dst = llvmMunchExp(s->u.MOVE.dst);
+        llvmMunchExtCall(dst, s->u.MOVE.src);
         break;
       case T_CALL:
-        dst = munchExp(s->u.MOVE.dst);
-        munchCall(dst, s->u.MOVE.src);
+        dst = llvmMunchExp(s->u.MOVE.dst);
+        llvmMunchCall(dst, s->u.MOVE.src);
         break;
       default:
-        src = munchExp(s->u.MOVE.src);
-        dst = munchExp(s->u.MOVE.dst);
+        src = llvmMunchExp(s->u.MOVE.src);
+        dst = llvmMunchExp(s->u.MOVE.dst);
         if (src->type == T_int && dst->type == T_int) {
           ir = (string)checked_malloc(IR_MAXLEN);
           sprintf(ir, "%%`d0 = add i64 0, %%`s0");
@@ -495,14 +495,14 @@ void munchMove(T_stm s) {
   }
 }
 
-Temp_temp munchBinop(Temp_temp ret, T_exp e) {
+Temp_temp llvmMunchBinop(Temp_temp ret, T_exp e) {
   string ir = (string)checked_malloc(IR_MAXLEN);
   Temp_temp s0 = NULL, s1 = NULL;
   if (e->u.BINOP.left->kind != T_CONST) {
-    s0 = munchExp(e->u.BINOP.left);
+    s0 = llvmMunchExp(e->u.BINOP.left);
   }
   if (e->u.BINOP.right->kind != T_CONST) {
-    s1 = munchExp(e->u.BINOP.right);
+    s1 = llvmMunchExp(e->u.BINOP.right);
   }
   // Get the type of operands
   T_type left, right;
@@ -602,8 +602,8 @@ Temp_temp munchBinop(Temp_temp ret, T_exp e) {
   }
   return ret;
 }
-void munchCall(Temp_temp ret, T_exp e) {
-  Temp_temp obj = munchExp(e->u.CALL.obj);
+void llvmMunchCall(Temp_temp ret, T_exp e) {
+  Temp_temp obj = llvmMunchExp(e->u.CALL.obj);
   Temp_temp tmp1;
   tmp1 = Temp_newtemp(T_int);
   string rettype;
@@ -616,13 +616,13 @@ void munchCall(Temp_temp ret, T_exp e) {
   sprintf(ir1, "%%`d0 = inttoptr i64 %%`s0 to i64*");
   emit(AS_Oper(ir1, Temp_TempList(tmp1, NULL), Temp_TempList(obj, NULL), NULL));
   string argstr = (string)checked_malloc(IR_MAXLEN);
-  Temp_tempList args = munchArgs(e->u.CALL.args, argstr, TRUE, 1);
+  Temp_tempList args = llvmMunchArgs(e->u.CALL.args, argstr, TRUE, 1);
   string ir2 = (string)checked_malloc(IR_MAXLEN);
   sprintf(ir2, "%%`d0 = call %s %%`s0(%s)", rettype, argstr);
   emit(AS_Oper(ir2, Temp_TempList(ret, NULL), Temp_TempList(tmp1, args), NULL));
 }
 
-void munchExtCall(Temp_temp ret, T_exp e) {
+void llvmMunchExtCall(Temp_temp ret, T_exp e) {
   string func = e->u.ExtCALL.extfun;
   string ir = (string)checked_malloc(IR_MAXLEN);
   string tsf = (string)checked_malloc(IR_MAXLEN);
@@ -632,7 +632,7 @@ void munchExtCall(Temp_temp ret, T_exp e) {
               e->u.ExtCALL.args->head->u.CONST.i);
       emit(AS_Oper(ir, NULL, NULL, NULL));
     } else {
-      Temp_temp arg = munchExp(e->u.ExtCALL.args->head);
+      Temp_temp arg = llvmMunchExp(e->u.ExtCALL.args->head);
       sprintf(ir, "call void @putint(i64 %%`s0)");
       emit(AS_Oper(ir, NULL, Temp_TempList(arg, NULL), NULL));
     }
@@ -642,7 +642,7 @@ void munchExtCall(Temp_temp ret, T_exp e) {
               e->u.ExtCALL.args->head->u.CONST.f);
       emit(AS_Oper(ir, NULL, NULL, NULL));
     } else {
-      Temp_temp arg = munchExp(e->u.ExtCALL.args->head);
+      Temp_temp arg = llvmMunchExp(e->u.ExtCALL.args->head);
       sprintf(ir, "call void @putfloat(double %%`s0)");
       emit(AS_Oper(ir, NULL, Temp_TempList(arg, NULL), NULL));
     }
@@ -652,27 +652,27 @@ void munchExtCall(Temp_temp ret, T_exp e) {
               e->u.ExtCALL.args->head->u.CONST.i);
       emit(AS_Oper(ir, NULL, NULL, NULL));
     } else {
-      Temp_temp arg = munchExp(e->u.ExtCALL.args->head);
+      Temp_temp arg = llvmMunchExp(e->u.ExtCALL.args->head);
       sprintf(ir, "call void @putch(i64 %%`s0)");
       emit(AS_Oper(ir, NULL, Temp_TempList(arg, NULL), NULL));
     }
   } else if (strcmp(func, "putarray") == 0) {
     Temp_temp arrptr = Temp_newtemp(T_int);
-    Temp_temp arr = munchExp(e->u.ExtCALL.args->tail->head);
+    Temp_temp arr = llvmMunchExp(e->u.ExtCALL.args->tail->head);
     sprintf(tsf, "%%`d0 = inttoptr i64 %%`s0 to i64*");
     emit(AS_Oper(tsf, Temp_TempList(arrptr, NULL), Temp_TempList(arr, NULL),
                  NULL));
-    Temp_temp pos = munchExp(e->u.ExtCALL.args->head);
+    Temp_temp pos = llvmMunchExp(e->u.ExtCALL.args->head);
     sprintf(ir, "call void @putarray(i64 %%`s0, i64* %%`s1)");
     emit(AS_Oper(ir, NULL, Temp_TempList(pos, Temp_TempList(arrptr, NULL)),
                  NULL));
   } else if (strcmp(func, "putfarray") == 0) {
     Temp_temp arrptr = Temp_newtemp(T_int);
-    Temp_temp arr = munchExp(e->u.ExtCALL.args->tail->head);
+    Temp_temp arr = llvmMunchExp(e->u.ExtCALL.args->tail->head);
     sprintf(tsf, "%%`d0 = inttoptr i64 %%`s0 to i64*");
     emit(AS_Oper(tsf, Temp_TempList(arrptr, NULL), Temp_TempList(arr, NULL),
                  NULL));
-    Temp_temp pos = munchExp(e->u.ExtCALL.args->head);
+    Temp_temp pos = llvmMunchExp(e->u.ExtCALL.args->head);
     sprintf(ir, "call void @putfarray(i64 %%`s0, i64* %%`s1)");
     emit(AS_Oper(ir, NULL, Temp_TempList(pos, Temp_TempList(arrptr, NULL)),
                  NULL));
@@ -687,7 +687,7 @@ void munchExtCall(Temp_temp ret, T_exp e) {
     emit(AS_Oper(ir, Temp_TempList(ret, NULL), NULL, NULL));
   } else if (strcmp(func, "getarray") == 0) {
     Temp_temp arrayptr = Temp_newtemp(T_int);
-    Temp_temp arr = munchExp(e->u.ExtCALL.args->head);
+    Temp_temp arr = llvmMunchExp(e->u.ExtCALL.args->head);
     sprintf(tsf, "%%`d0 = inttoptr i64 %%`s0 to i64*");
     emit(AS_Oper(tsf, Temp_TempList(arrayptr, NULL), Temp_TempList(arr, NULL),
                  NULL));
@@ -696,7 +696,7 @@ void munchExtCall(Temp_temp ret, T_exp e) {
                  NULL));
   } else if (strcmp(func, "getfarray") == 0) {
     Temp_temp arrayptr = Temp_newtemp(T_int);
-    Temp_temp arr = munchExp(e->u.ExtCALL.args->head);
+    Temp_temp arr = llvmMunchExp(e->u.ExtCALL.args->head);
     sprintf(tsf, "%%`d0 = inttoptr i64 %%`s0 to i64*");
     emit(AS_Oper(tsf, Temp_TempList(arrayptr, NULL), Temp_TempList(arr, NULL),
                  NULL));
@@ -710,7 +710,7 @@ void munchExtCall(Temp_temp ret, T_exp e) {
               e->u.ExtCALL.args->head->u.CONST.i);
       emit(AS_Oper(ir, Temp_TempList(tmp, NULL), NULL, NULL));
     } else {
-      Temp_temp size = munchExp(e->u.ExtCALL.args->head);
+      Temp_temp size = llvmMunchExp(e->u.ExtCALL.args->head);
       sprintf(ir, "%%`d0 = call i64* @malloc(i64 %%`s0)");
       emit(AS_Oper(ir, Temp_TempList(tmp, NULL), Temp_TempList(size, NULL),
                    NULL));
@@ -729,18 +729,18 @@ void munchExtCall(Temp_temp ret, T_exp e) {
   }
 }
 
-Temp_tempList munchArgs(T_expList args, string res, bool first, int i) {
+Temp_tempList llvmMunchArgs(T_expList args, string res, bool first, int i) {
   if (!args) {
     return NULL;
   }
-  Temp_temp arg = munchExp(args->head);
+  Temp_temp arg = llvmMunchExp(args->head);
   if (first) {
     if (arg->type == T_int) {
       sprintf(res, "i64 %%`s%d", i);
     } else {
       sprintf(res, "double %%`s%d", i);
     }
-    Temp_tempList tmp = munchArgs(args->tail, res, FALSE, i + 1);
+    Temp_tempList tmp = llvmMunchArgs(args->tail, res, FALSE, i + 1);
     return Temp_TempList(arg, tmp);
   }
   if (arg->type == T_int) {
@@ -748,5 +748,5 @@ Temp_tempList munchArgs(T_expList args, string res, bool first, int i) {
   } else {
     sprintf(res + strlen(res), ", double %%`s%d", i);
   }
-  return Temp_TempList(arg, munchArgs(args->tail, res, FALSE, i + 1));
+  return Temp_TempList(arg, llvmMunchArgs(args->tail, res, FALSE, i + 1));
 }

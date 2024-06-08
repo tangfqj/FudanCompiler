@@ -181,7 +181,7 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
-    G_nodeList bg = Create_bg(instrList2BL(bodyil)); // create a basic block graph
+    //G_nodeList bg = Create_bg(instrList2BL(bodyil)); // create a basic block graph
     freopen(file_cfg, "a", stdout);
     fprintf(stdout, "------Basic Block Graph------\n");
     Show_bg(stdout, bg);

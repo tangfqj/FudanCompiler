@@ -80,14 +80,14 @@ AS_instrList armbody(AS_instrList il){
   iList = last = NULL;
   cmpop = (string) checked_malloc(IR_MAXLEN);
   while(il) {
-    munchInstr(il->head);
+    armMunchInstr(il->head);
     il = il->tail;
   }
   return iList;
 }
 
 /* Helper methods */
-void munchInstr(AS_instr inst){
+void armMunchInstr(AS_instr inst){
   AS_type inst_type = gettype(inst);
   string ir = (string) checked_malloc(IR_MAXLEN);
   Temp_temp t = NULL;
@@ -106,31 +106,31 @@ void munchInstr(AS_instr inst){
       emit(AS_Oper(ir, NULL, NULL, inst->u.OPER.jumps));
       break;
     case RET:
-      munchRet(inst);
+      armMunchRet(inst);
       break;
     case ADD:
-      munchAdd(inst);
+      armMunchAdd(inst);
       break;
     case SUB:
-      munchSub(inst);
+      armMunchSub(inst);
       break;
     case MUL:
-      munchMul(inst);
+      armMunchMul(inst);
       break;
     case DIV:
-      munchDiv(inst);
+      armMunchDiv(inst);
       break;
     case FADD:
-      munchFbinop(inst, "add");
+      armMunchFbinop(inst, "add");
       break;
     case FSUB:
-      munchFbinop(inst, "sub");
+      armMunchFbinop(inst, "sub");
       break;
     case FMUL:
-      munchFbinop(inst, "mul");
+      armMunchFbinop(inst, "mul");
       break;
     case FDIV:
-      munchFbinop(inst, "div");
+      armMunchFbinop(inst, "div");
       break;
     case F2I:
       t = Temp_newtemp(T_float);
@@ -153,25 +153,25 @@ void munchInstr(AS_instr inst){
       emit(AS_Move(ir, inst->u.OPER.dst, inst->u.OPER.src));
       break;
     case P2I:
-      munchP2I(inst);
+      armMunchP2I(inst);
       break;
     case LOAD:
-      munchLoad(inst);
+      armMunchLoad(inst);
       break;
     case STORE:
-      munchStore(inst);
+      armMunchStore(inst);
       break;
     case CALL:
-      munchCall(inst);
+      armMunchCall(inst);
       break;
     case EXTCALL:
-      munchExtCall(inst);
+      armMunchExtCall(inst);
       break;
     case ICMP:
-      munchIcmp(inst);
+      armMunchIcmp(inst);
       break;
     case FCMP:
-      munchFcmp(inst);
+      armMunchFcmp(inst);
       break;
     case LABEL:
       sprintf(ir, "%s:", getlabel(inst));
@@ -192,7 +192,7 @@ void munchInstr(AS_instr inst){
   }
 }
 
-void munchRet(AS_instr inst) {
+void armMunchRet(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -228,7 +228,7 @@ void munchRet(AS_instr inst) {
   emit(AS_Oper("pop {fp}", NULL, NULL, NULL));
   emit(AS_Oper("bx lr", NULL, TL(r0, NULL), NULL));
 }
-void munchAdd(AS_instr inst) {
+void armMunchAdd(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -272,7 +272,7 @@ void munchAdd(AS_instr inst) {
   emit(AS_Oper(ir, inst->u.OPER.dst, TL(left, TL(right, NULL)), NULL));
 }
 
-void munchSub(AS_instr inst) {
+void armMunchSub(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -338,7 +338,7 @@ void munchSub(AS_instr inst) {
   }
 }
 
-void munchMul(AS_instr inst) {
+void armMunchMul(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -381,7 +381,7 @@ void munchMul(AS_instr inst) {
   emit(AS_Oper(ir, inst->u.OPER.dst, TL(left, TL(right, NULL)), NULL));
 }
 
-void munchDiv(AS_instr inst) {
+void armMunchDiv(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
   char* equal = strchr(assem, '=');
@@ -427,7 +427,7 @@ void munchDiv(AS_instr inst) {
   callerSaveRet();
   emit(AS_Move("mov %`d0, %r0", inst->u.OPER.dst, TL(r0, NULL)));
 }
-void munchP2I(AS_instr inst) {
+void armMunchP2I(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -449,7 +449,7 @@ void munchP2I(AS_instr inst) {
   }
   else  assert(0);
 }
-void munchLoad(AS_instr inst) {
+void armMunchLoad(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -467,7 +467,7 @@ void munchLoad(AS_instr inst) {
     emit(AS_Oper(ir, Temp_TempListSplice(inst->u.OPER.dst, inst->u.OPER.src), inst->u.OPER.src, NULL));
   }
 }
-void munchStore(AS_instr inst) {
+void armMunchStore(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -509,7 +509,7 @@ void munchStore(AS_instr inst) {
   }
 }
 
-void munchCall(AS_instr inst) {
+void armMunchCall(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -594,7 +594,7 @@ void munchCall(AS_instr inst) {
   }
 }
 
-void munchExtCall(AS_instr inst) {
+void armMunchExtCall(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -653,7 +653,7 @@ void munchExtCall(AS_instr inst) {
   emit(AS_Oper(ir, TL(Temp_reg(0, T_int), NULL), NULL, NULL));
   callerSaveRet();
 }
-void munchIcmp(AS_instr inst) {
+void armMunchIcmp(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -716,7 +716,7 @@ void munchIcmp(AS_instr inst) {
   }
 }
 
-void munchFcmp(AS_instr inst) {
+void armMunchFcmp(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 
@@ -781,7 +781,7 @@ void munchFcmp(AS_instr inst) {
   }
 }
 
-void munchFbinop(AS_instr inst, string bop) {
+void armMunchFbinop(AS_instr inst, string bop) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
 

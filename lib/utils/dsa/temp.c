@@ -14,6 +14,7 @@
 #include "table.h"
 
 static S_table temp_table = NULL;
+static S_table reg_table = NULL;
 static int temps = 100;
 static int labels = 0;
 static FILE *outfile;
@@ -52,8 +53,31 @@ Temp_temp Temp_namedtemp(int name, T_type type) {
   p = (Temp_temp) checked_malloc(sizeof (*p));
   p->num = name;
   p->type = type;
+  if(name >= temps)
+    temps = name+1;
   Temp_enter(Temp_name(), p, String(r));
   S_enter(temp_table, S_Symbol(String(r)), p);
+  return p;
+}
+
+Temp_temp Temp_reg(int name, T_type type) {
+  if (!reg_table) reg_table = S_empty();
+  char r[20];
+  if (type == T_int) {
+    sprintf(r, "r%d", name);
+  } else {
+    sprintf(r, "s%d", name);
+  }
+  Temp_temp p = S_look(reg_table, S_Symbol(String(r)));
+  if (p) {
+    p->type = type; // reuse
+    return p;
+  }
+  p = (Temp_temp) checked_malloc(sizeof (*p));
+  p->num = name;
+  p->type = type;
+  Temp_enter(Temp_name(), p, String(r));
+  S_enter(reg_table, S_Symbol(String(r)), p);
   return p;
 }
 

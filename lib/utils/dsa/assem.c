@@ -148,15 +148,21 @@ void AS_print(FILE *out, AS_instr i, Temp_map m) {
   case I_OPER:
     format(r, i->u.OPER.assem, i->u.OPER.dst, i->u.OPER.src, i->u.OPER.jumps, m);
     fprintf(out, "%s", r);
+    fflush(out);
+    //fprintf(stderr, "%s\n", r);
     break;
   case I_LABEL:
     format(r, i->u.LABEL.assem, NULL, NULL, NULL, m);
     fprintf(out, "%s", r);
+    fflush(out);
+    //fprintf(stderr, "%s\n", r);
     /* i->u.LABEL->label); */
     break;
   case I_MOVE:
     format(r, i->u.MOVE.assem, i->u.MOVE.dst, i->u.MOVE.src, NULL, m);
     fprintf(out, "%s", r);
+    fflush(out);
+    //fprintf(stderr, "%s\n", r);
     break;
   }
   fprintf(out, "\n");
@@ -166,6 +172,85 @@ void AS_print(FILE *out, AS_instr i, Temp_map m) {
 void AS_printInstrList (FILE *out, AS_instrList iList, Temp_map m) {
   for (; iList; iList = iList->tail) {
     AS_print(out, iList->head, m);
+  }
+  fprintf(out, "\n");
+}
+
+/* ARM */
+static void format_arm(char *result, string assem,
+                   Temp_tempList dst, Temp_tempList src,
+                   AS_targets jumps, Temp_map m) {
+  char *p;
+  int i = 0; /* offset to result string */
+  for (p = assem; p && *p != '\0'; p++)
+    if (*p == '`')
+      switch (*(++p)) {
+        case 's': {
+          int n = atoi(++p);
+          Temp_temp t = nthTemp(src, n);
+          string s = Temp_look(m, t);
+          strcpy(result + i, s);
+          i += strlen(s);
+        }
+          break;
+        case 'd': {
+          int n = atoi(++p);
+          Temp_temp t = nthTemp(dst, n);
+          string s = Temp_look(m, t);
+          strcpy(result + i, s);
+          i += strlen(s);
+        }
+          break;
+        case 'j':
+          assert(jumps);
+          {
+            int n = atoi(++p);
+            string s = Temp_labelstring(nthLabel(jumps->labels, n));
+            strcpy(result + i, s);
+            i += strlen(s);
+          }
+          break;
+        case '`':
+          result[i] = '`';
+          i++;
+          break;
+        default:
+          assert(0);
+      } else {
+      result[i] = *p;
+      i++;
+    }
+  result[i] = '\0';
+}
+void ARM_print(FILE *out, AS_instr i, Temp_map m) {
+  char r[200]; /* result */
+  switch (i->kind) {
+    case I_OPER:
+      format_arm(r, i->u.OPER.assem, i->u.OPER.dst, i->u.OPER.src, i->u.OPER.jumps, m);
+      fprintf(out, "%s", r);
+      fflush(out);
+      //fprintf(stderr, "%s\n", r);
+      break;
+    case I_LABEL:
+      format_arm(r, i->u.LABEL.assem, NULL, NULL, NULL, m);
+      fprintf(out, "%s", r);
+      fflush(out);
+      //fprintf(stderr, "%s\n", r);
+      /* i->u.LABEL->label); */
+      break;
+    case I_MOVE:
+      format_arm(r, i->u.MOVE.assem, i->u.MOVE.dst, i->u.MOVE.src, NULL, m);
+      fprintf(out, "%s", r);
+      fflush(out);
+      //fprintf(stderr, "%s\n", r);
+      break;
+  }
+  fprintf(out, "\n");
+}
+
+void ARM_printInstrList(FILE *out, AS_instrList iList, Temp_map m) {
+  for (; iList; iList = iList->tail) {
+    ARM_print(out, iList->head, m);
   }
   fprintf(out, "\n");
 }
