@@ -199,10 +199,10 @@ Temp_temp llvmMunchExp(T_exp e) {
     case T_CONST:
       if (e->type == T_int) {
         ret = Temp_newtemp(T_int);
-        sprintf(ir, "%%`d0 = add i64 0, %d", e->u.CONST.i);
+        sprintf(ir, "%%`d0 = add i64 %d, 0", e->u.CONST.i);
       } else {  // T_float
         ret = Temp_newtemp(T_float);
-        sprintf(ir, "%%`d0 = fadd double 0.0, %f", e->u.CONST.f);
+        sprintf(ir, "%%`d0 = fadd double %f, 0.0", e->u.CONST.f);
       }
       emit(AS_Oper(ir, Temp_TempList(ret, NULL), NULL, NULL));
       return ret;
@@ -409,11 +409,11 @@ void llvmMunchMove(T_stm s) {
     Temp_temp dst = llvmMunchExp(s->u.MOVE.dst);
     if (src->type == T_int && dst->type == T_int) {
       ir = (string)checked_malloc(IR_MAXLEN);
-      sprintf(ir, "%%`d0 = add i64 0, %%`s0");
+      sprintf(ir, "%%`d0 = add i64 %%`s0, 0");
       emit(AS_Move(ir, Temp_TempList(dst, NULL), Temp_TempList(src, NULL)));
     } else if (src->type == T_float && dst->type == T_float) {
       ir = (string)checked_malloc(IR_MAXLEN);
-      sprintf(ir, "%%`d0 = fadd double 0.0, %%`s0");
+      sprintf(ir, "%%`d0 = fadd double %%`s0, 0.0");
       emit(AS_Move(ir, Temp_TempList(dst, NULL), Temp_TempList(src, NULL)));
     } else {
       fprintf(stderr, "Error in Move!");
@@ -429,10 +429,10 @@ void llvmMunchMove(T_stm s) {
         dst = llvmMunchExp(s->u.MOVE.dst);
         if (s->u.MOVE.src->type == T_int) {
           ir = (string)checked_malloc(IR_MAXLEN);
-          sprintf(ir, "%%`d0 = add i64 0, %d", s->u.MOVE.src->u.CONST.i);
+          sprintf(ir, "%%`d0 = add i64 %d, 0", s->u.MOVE.src->u.CONST.i);
         } else {  // T_float
           ir = (string)checked_malloc(IR_MAXLEN);
-          sprintf(ir, "%%`d0 = fadd double 0.0, %f", s->u.MOVE.src->u.CONST.f);
+          sprintf(ir, "%%`d0 = fadd double %f, 0.0", s->u.MOVE.src->u.CONST.f);
         }
         emit(AS_Oper(ir, Temp_TempList(dst, NULL), NULL, NULL));
         break;
@@ -449,11 +449,11 @@ void llvmMunchMove(T_stm s) {
         dst = llvmMunchExp(s->u.MOVE.dst);
         if (src->type == T_int && dst->type == T_int) {
           ir = (string)checked_malloc(IR_MAXLEN);
-          sprintf(ir, "%%`d0 = add i64 0, %%`s0");
+          sprintf(ir, "%%`d0 = add i64 %%`s0, 0");
           emit(AS_Move(ir, Temp_TempList(dst, NULL), Temp_TempList(src, NULL)));
         } else if (src->type == T_float && dst->type == T_float) {
           ir = (string)checked_malloc(IR_MAXLEN);
-          sprintf(ir, "%%`d0 = fadd double 0.0, %%`s0");
+          sprintf(ir, "%%`d0 = fadd double %%`s0, 0.0");
           emit(AS_Move(ir, Temp_TempList(dst, NULL), Temp_TempList(src, NULL)));
         } else {
           fprintf(stderr, "Error in Move!");

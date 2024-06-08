@@ -133,7 +133,7 @@ int main(int argc, const char* argv[]) {
     }
     AS_instrList epilogil = llvmepilog(b.label);
 
-    G_nodeList bg = Create_bg(bodybl);
+    G_nodeList bg = Create_bg(bodybl);  // create a basic block graph
 
     freopen(file_ins, "a", stdout);
     fprintf(stdout, "\n------For function %s------\n", fdl->head->name);
@@ -182,7 +182,6 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
-    //G_nodeList bg = Create_bg(instrList2BL(bodyil)); // create a basic block graph
     freopen(file_cfg, "a", stdout);
     fprintf(stdout, "------Basic Block Graph------\n");
     Show_bg(stdout, bg);
