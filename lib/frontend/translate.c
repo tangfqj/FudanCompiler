@@ -133,8 +133,6 @@ static Cx unCx(Tr_exp exp) {
   }
 }
 
-/* TODO: translate */
-
 // methods
 T_funcDeclList Tr_FuncDeclList(T_funcDecl fd, T_funcDeclList fdl) {
   return T_FuncDeclList(fd, fdl);

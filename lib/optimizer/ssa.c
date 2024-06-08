@@ -1,25 +1,26 @@
+#include "ssa.h"
+
 #include "assem.h"
 #include "graph.h"
-#include "ssa.h"
 
 #define __DEBUG
 #undef __DEBUG
 
-static S_table denv; // dominator: block label -> G_nodeList
-static S_table idomenv; // immediate dominator: block label -> G_node
-static S_table domftrenv; // dominate frontier: block label -> G_nodeList
-static S_table origenv; // variable definition: block label -> Temp_tempList
-static S_table liveinenv; // variable live-in: block label -> Temp_tempList
-static S_table phienv; // phi function: block label -> Temp_tempList
-static S_table phiinstrenv; // place of phi function: block label -> AS_instrList
-static S_table instrenv; // block label -> AS_instrList
-static S_table rmvenv; // block label -> AS_instrList
+static S_table denv;         // dominator: block label -> G_nodeList
+static S_table idomenv;      // immediate dominator: block label -> G_node
+static S_table domftrenv;    // dominate frontier: block label -> G_nodeList
+static S_table origenv;      // variable definition: block label -> Temp_tempList
+static S_table liveinenv;    // variable live-in: block label -> Temp_tempList
+static S_table phienv;       // phi function: block label -> Temp_tempList
+static S_table phiinstrenv;  // place of phi function: block label -> AS_instrList
+static S_table instrenv;     // block label -> AS_instrList
+static S_table rmvenv;       // block label -> AS_instrList
 static Temp_label curr_block;
 static int tmp_num;
 static G_nodeList defsites[1000];
 static Temp_temp temptype[1000];
 static int node_num;
-static G_nodeList nodedom[200]; // dominates: #i dominates xxx
+static G_nodeList nodedom[200];  // dominates: #i dominates xxx
 static stack varstk;
 static AS_instrList bodyil_SSA;
 static int tmpdef[1000];
@@ -28,7 +29,6 @@ static int tmpversion[1000];
 
 AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
   InitSSA(bg);
-  /* here is your implementation of translating to ssa */
   // Compute dominance
   computeDominator(bg);
   // Compute dominance frontiers
@@ -42,7 +42,7 @@ AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList 
   InitRename();
   renameVariable(bg->head);
   // Eliminate phi functions
-  //eliminatePhiFunction(bg);
+  // eliminatePhiFunction(bg);
   collectInstructions_llvm(bg);
   return bodyil_SSA;
 }
@@ -86,25 +86,25 @@ void computeDominator(G_nodeList bg) {
     // Construct denv
     int idomkey = -1;
     G_node idom = NULL;
-    while(doms){
+    while (doms) {
       G_node dom = doms->head;
       AS_block b = dom->info;
-      if(S_look(denv, b->label) != NULL){
+      if (S_look(denv, b->label) != NULL) {
         G_nodeList ds = S_look(denv, b->label);
         ds = G_NodeList(curr, ds);
         S_enter(denv, b->label, ds);
-      } else{
+      } else {
         G_nodeList ds = G_NodeList(curr, NULL);
         S_enter(denv, b->label, ds);
       }
       // Compute immediate dominator
-      if(dom->mykey != curr->mykey && dom->mykey > idomkey){
+      if (dom->mykey != curr->mykey && dom->mykey > idomkey) {
         idomkey = dom->mykey;
         idom = dom;
       }
       doms = doms->tail;
     }
-    if(idom){
+    if (idom) {
       AS_block currb = curr->info;
       S_symbol currsym = currb->label;
       S_enter(idomenv, currsym, idom);
@@ -113,16 +113,16 @@ void computeDominator(G_nodeList bg) {
   }
 }
 
-void computeDominanceFrontier(G_node nd){
+void computeDominanceFrontier(G_node nd) {
   G_nodeList result = NULL;
   // Compute DF_local
   G_nodeList succs = nd->succs;
-  while(succs){
+  while (succs) {
     G_node y = succs->head;
     AS_block yb = y->info;
-    if(S_look(idomenv, yb->label)){
+    if (S_look(idomenv, yb->label)) {
       G_node yidom = S_look(idomenv, yb->label);
-      if(yidom->mykey != nd->mykey){
+      if (yidom->mykey != nd->mykey) {
         result = G_NodeList(y, result);
       }
     }
@@ -131,15 +131,14 @@ void computeDominanceFrontier(G_node nd){
   // Compute DF_up
   AS_block b = nd->info;
   G_nodeList chl = S_look(denv, b->label);
-  while(chl){
+  while (chl) {
     G_node c = chl->head;
-    if(c->mykey != nd->mykey)
-      computeDominanceFrontier(c);
+    if (c->mykey != nd->mykey) computeDominanceFrontier(c);
     AS_block cb = c->info;
     G_nodeList domftr = S_look(domftrenv, cb->label);
-    while(domftr){
+    while (domftr) {
       G_node w = domftr->head;
-      if(!isDominate(nd, w) && !GnodeInGnodeList(w, result)){
+      if (!isDominate(nd, w) && !GnodeInGnodeList(w, result)) {
         result = G_NodeList(w, result);
       }
       domftr = domftr->tail;
@@ -168,27 +167,27 @@ void variablessa(G_nodeList lg) {
 
 void computeDefsites(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
   // Construct origenv
-  while(lg){
+  while (lg) {
     G_node curr = lg->head;
     AS_instr curr_instr = get_ithInstr(bodyil, curr->mykey);
-    if(curr_instr->kind == I_LABEL){
+    if (curr_instr->kind == I_LABEL) {
       curr_block = curr_instr->u.LABEL.label;
     }
-    if(curr->mykey == 0){
+    if (curr->mykey == 0) {
       S_enter(origenv, curr_block, FG_In(curr));
     }
     Temp_tempList defs = FG_def(curr);
-    if(S_look(origenv, curr_block) == NULL){
+    if (S_look(origenv, curr_block) == NULL) {
       S_enter(origenv, curr_block, defs);
-    } else{
+    } else {
       Temp_tempList prev = S_look(origenv, curr_block);
       Temp_tempList tmp = Temp_TempListUnion(prev, defs);
       S_enter(origenv, curr_block, tmp);
     }
     Temp_tempList ins = FG_In(curr);
-    if(S_look(liveinenv, curr_block) == NULL){
+    if (S_look(liveinenv, curr_block) == NULL) {
       S_enter(liveinenv, curr_block, ins);
-    } else{
+    } else {
       Temp_tempList prev = S_look(liveinenv, curr_block);
       Temp_tempList tmp = Temp_TempListUnion(prev, ins);
       S_enter(liveinenv, curr_block, tmp);
@@ -196,18 +195,17 @@ void computeDefsites(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
     lg = lg->tail;
   }
   // Compute defsites of each variable
-  while(bg){
+  while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
-    if(S_look(origenv, b->label)){
+    if (S_look(origenv, b->label)) {
       Temp_tempList vars = S_look(origenv, b->label);
-      while(vars){
+      while (vars) {
         Temp_temp v = vars->head;
         G_nodeList prev = defsites[v->num];
         defsites[v->num] = G_NodeList(curr, prev);
         temptype[v->num] = v;
-        if(v->num > tmp_num)
-          tmp_num = v->num;
+        if (v->num > tmp_num) tmp_num = v->num;
         vars = vars->tail;
       }
     }
@@ -215,7 +213,7 @@ void computeDefsites(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
   }
 }
 
-void placePhiFunction(G_nodeList bg){
+void placePhiFunction(G_nodeList bg) {
   // Record phi functions
   for (int i = 99; i <= tmp_num; i++) {
     G_nodeList gl = defsites[i];
@@ -230,13 +228,13 @@ void placePhiFunction(G_nodeList bg){
         Temp_tempList phiy = S_look(phienv, yb->label);
         Temp_tempList iny = S_look(liveinenv, yb->label);
         Temp_temp ytmp = temptype[i];
-        if (Temp_TempInTempList(ytmp, phiy) == FALSE && Temp_TempInTempList(ytmp, iny) == TRUE && ssa[ytmp->num] == FALSE) {
+        if (Temp_TempInTempList(ytmp, phiy) == FALSE &&
+            Temp_TempInTempList(ytmp, iny) == TRUE && ssa[ytmp->num] == FALSE) {
           // insert a = phi(a,...a) at the top of block y
           AS_instr phiInstr = makePhiFunction(ytmp, y);
           if (S_look(phiinstrenv, yb->label) == NULL) {
             S_enter(phiinstrenv, yb->label, AS_InstrList(phiInstr, NULL));
-          }
-          else {
+          } else {
             AS_instrList tmp = S_look(phiinstrenv, yb->label);
             S_enter(phiinstrenv, yb->label, AS_InstrList(phiInstr, tmp));
           }
@@ -274,19 +272,19 @@ void InitRename() {
     tmpversion[i] = i;
   }
 }
-void renameVariable(G_node nd){
+void renameVariable(G_node nd) {
   AS_block b = nd->info;
   // For each statement S in block n
   AS_instrList instrs = S_look(instrenv, b->label);
-  AS_instrList origs = S_look(instrenv, b->label);;
+  AS_instrList origs = S_look(instrenv, b->label);
   AS_instrList h = instrs;
   while (instrs) {
     AS_instr instr = instrs->head;
     Temp_tempList use = NULL, def = NULL;
     if (!isPhiFunction(instr)) {
-      if(instr->kind == I_OPER){
+      if (instr->kind == I_OPER) {
         use = instr->u.OPER.src;
-      } else if(instr->kind == I_MOVE){
+      } else if (instr->kind == I_MOVE) {
         use = instr->u.MOVE.src;
       }
       while (use) {
@@ -320,12 +318,13 @@ void renameVariable(G_node nd){
       // the jth operand of the phi-function is a
       if (isPhiFunction(yinstr)) {
         Temp_tempList phitmp = yinstr->u.OPER.src;
-        if(phitmp == NULL) fprintf(stderr, "It's null!!\n");
+        if (phitmp == NULL) fprintf(stderr, "It's null!!\n");
         Temp_tempList phitmph = phitmp;
-        for(int i = 0; i < j; ++i)  phitmp = phitmp->tail;
+        for (int i = 0; i < j; ++i) phitmp = phitmp->tail;
         assert(phitmp);
         phitmp->head = srcVersion(phitmp->head);
-        yinstrs->head = AS_Oper(yinstr->u.OPER.assem, yinstr->u.OPER.dst, phitmph, yinstr->u.OPER.jumps);
+        yinstrs->head = AS_Oper(yinstr->u.OPER.assem, yinstr->u.OPER.dst, phitmph,
+                                yinstr->u.OPER.jumps);
       }
       yinstrs = yinstrs->tail;
     }
@@ -347,12 +346,12 @@ void renameVariable(G_node nd){
   while (origs) {
     AS_instr orig = origs->head;
     Temp_tempList defs = NULL;
-    if(orig->kind == I_OPER){
+    if (orig->kind == I_OPER) {
       defs = orig->u.OPER.dst;
-    } else if(orig->kind == I_MOVE){
+    } else if (orig->kind == I_MOVE) {
       defs = orig->u.MOVE.dst;
     }
-    while(defs){
+    while (defs) {
       endVersion(defs->head);
       defs = defs->tail;
     }
@@ -360,7 +359,7 @@ void renameVariable(G_node nd){
   }
 }
 void eliminatePhiFunction(G_nodeList bg) {
-  string ir = (string) checked_malloc(IR_MAXLEN);
+  string ir = (string)checked_malloc(IR_MAXLEN);
   while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
@@ -374,13 +373,14 @@ void eliminatePhiFunction(G_nodeList bg) {
           Temp_labelList tgts = instr->u.OPER.jumps->labels;
           while (vars) {
             if (dst->type == T_int) {
-              ir = (string) checked_malloc(IR_MAXLEN);
+              ir = (string)checked_malloc(IR_MAXLEN);
               sprintf(ir, "%%`d0 = add i64 %%`s0, 0");
-            } else { // T_float
-              ir = (string) checked_malloc(IR_MAXLEN);
+            } else {  // T_float
+              ir = (string)checked_malloc(IR_MAXLEN);
               sprintf(ir, "%%`d0 = fadd double %%`s0, 0.0");
             }
-            AS_instr mov = AS_Oper(ir, Temp_TempList(dst, NULL), Temp_TempList(vars->head, NULL), NULL);
+            AS_instr mov = AS_Oper(ir, Temp_TempList(dst, NULL),
+                                   Temp_TempList(vars->head, NULL), NULL);
             Temp_label lb = tgts->head;
             if (S_look(rmvenv, lb)) {
               AS_instrList prev = S_look(rmvenv, lb);
@@ -399,7 +399,7 @@ void eliminatePhiFunction(G_nodeList bg) {
   }
 }
 void collectInstructions_arm(G_nodeList bg) {
-  while(bg){
+  while (bg) {
     G_node h = bg->head;
     AS_block b = h->info;
     if (S_look(instrenv, b->label)) {
@@ -408,13 +408,14 @@ void collectInstructions_arm(G_nodeList bg) {
         AS_instrList remil = S_look(rmvenv, b->label);
         AS_instrList il = instrs;
         while (TRUE) {
-          if (instrs->tail && instrs->tail->tail == NULL)  break;
-          else instrs = instrs->tail;
+          if (instrs->tail && instrs->tail->tail == NULL)
+            break;
+          else
+            instrs = instrs->tail;
         }
         instrs->tail = AS_splice(remil, instrs->tail);
         bodyil_SSA = AS_splice(bodyil_SSA, il);
-      }
-      else {
+      } else {
         bodyil_SSA = AS_splice(bodyil_SSA, instrs);
       }
     }
@@ -427,8 +428,7 @@ void collectInstructions_arm(G_nodeList bg) {
     if (isPhiFunction(curr)) {
       bf->tail = bodyil_SSA->tail;
       bodyil_SSA = bf;
-    }
-    else {
+    } else {
       bf = bodyil_SSA;
       bodyil_SSA = bodyil_SSA->tail;
     }
@@ -436,7 +436,7 @@ void collectInstructions_arm(G_nodeList bg) {
   bodyil_SSA = bh;
 }
 
-void collectInstructions_llvm(G_nodeList bg){
+void collectInstructions_llvm(G_nodeList bg) {
   while (bg) {
     G_node h = bg->head;
     AS_block b = h->info;
@@ -448,11 +448,11 @@ void collectInstructions_llvm(G_nodeList bg){
   }
 }
 /* Helper methods */
-static G_nodeList Intersect(G_nodeList a, G_nodeList b){
-  if(!a){
+static G_nodeList Intersect(G_nodeList a, G_nodeList b) {
+  if (!a) {
     return b;
   }
-  if(!b){
+  if (!b) {
     return a;
   }
   bool found;
@@ -476,47 +476,46 @@ static bool isDominate(G_node a, G_node b) {
   G_nodeList gl = nodedom[b->mykey];
   while (gl) {
     G_node g = gl->head;
-    if(g->mykey == a->mykey)  return TRUE;
+    if (g->mykey == a->mykey) return TRUE;
     gl = gl->tail;
   }
   return FALSE;
 }
 
-static AS_instr get_ithInstr(AS_instrList asl, int i){
-  if (i == 0)
-    return asl->head;
+static AS_instr get_ithInstr(AS_instrList asl, int i) {
+  if (i == 0) return asl->head;
   return get_ithInstr(asl->tail, i - 1);
 }
 
-static bool GnodeInGnodeList(G_node g, G_nodeList gl){
+static bool GnodeInGnodeList(G_node g, G_nodeList gl) {
   for (G_nodeList a = gl; a; a = a->tail) {
     if (g == a->head) return TRUE;
   }
   return FALSE;
 }
-static AS_instr makePhiFunction(Temp_temp var, G_node g){
+static AS_instr makePhiFunction(Temp_temp var, G_node g) {
   int num = 0;
-  string ir = (string) checked_malloc(IR_MAXLEN);
-  if(var->type == T_int){
+  string ir = (string)checked_malloc(IR_MAXLEN);
+  if (var->type == T_int) {
     sprintf(ir, "%%`d0 = phi i64 ");
-  } else{ // T_float
+  } else {  // T_float
     sprintf(ir, "%%`d0 = phi double ");
   }
   G_nodeList preds = g->preds;
   Temp_tempList src = NULL;
   Temp_labelList tll = NULL, tll_last = NULL;
-  while(preds){
-    if(preds->tail){
+  while (preds) {
+    if (preds->tail) {
       sprintf(ir + strlen(ir), "[%%`s%d, %%`j%d], ", num, num);
-    } else{
+    } else {
       sprintf(ir + strlen(ir), "[%%`s%d, %%`j%d]", num, num);
     }
     src = Temp_TempList(var, src);
     AS_block b = preds->head->info;
     Temp_label tl = b->label;
-    if(tll_last == NULL){
+    if (tll_last == NULL) {
       tll = tll_last = Temp_LabelList(tl, NULL);
-    } else{
+    } else {
       tll_last->tail = Temp_LabelList(tl, NULL);
       tll_last = tll_last->tail;
     }
@@ -526,22 +525,22 @@ static AS_instr makePhiFunction(Temp_temp var, G_node g){
   return AS_Oper(ir, Temp_TempList(var, NULL), src, AS_Targets(tll));
 }
 
-static bool isPhiFunction(AS_instr a){
+static bool isPhiFunction(AS_instr a) {
   string assem = NULL;
-  if(a->kind == I_OPER){
+  if (a->kind == I_OPER) {
     assem = a->u.OPER.assem;
-  } else{
+  } else {
     return FALSE;
   }
-  for(int i = 0; i < strlen(assem); i++){
-    if(assem[i] == '[')   return TRUE;
+  for (int i = 0; i < strlen(assem); i++) {
+    if (assem[i] == '[') return TRUE;
   }
   return FALSE;
 }
-static int getPred(G_node g, G_nodeList gl){
+static int getPred(G_node g, G_nodeList gl) {
   int i = 0;
-  while(gl){
-    if(gl->head->mykey == g->mykey) return i;
+  while (gl) {
+    if (gl->head->mykey == g->mykey) return i;
     i++;
     gl = gl->tail;
   }
@@ -572,56 +571,56 @@ static void endVersion(Temp_temp tmp) {
   stkPop(varstk, v);
 }
 /* Stack */
-static stack stkEmpty(){
+static stack stkEmpty() {
   stack s = checked_malloc(sizeof(*s));
-  for(int i = 0; i < STACK_SIZE; i++){
+  for (int i = 0; i < STACK_SIZE; i++) {
     s->top[i] = -1;
   }
   return s;
 }
-static void stkPush(stack s, int i, Temp_temp t){
+static void stkPush(stack s, int i, Temp_temp t) {
   if (!t) return;
   s->top[i]++;
   int top = s->top[i];
   s->data[i][top] = t;
 }
-static void stkPop(stack s, int i){
+static void stkPop(stack s, int i) {
   if (s->top[i] == -1) {
     fprintf(stderr, "Error in stkPop (%d)\n", i);
     exit(1);
   }
   s->top[i]--;
 }
-static Temp_temp stkTop(stack s, int i){
+static Temp_temp stkTop(stack s, int i) {
   int top = s->top[i];
-  if(top == -1){
+  if (top == -1) {
     fprintf(stderr, "Error in stkTop (%d)\n", i);
     exit(1);
   }
   return s->data[i][top];
 }
 /* TEST */
-void testDominator(G_nodeList bg){
-  for(int i = 0; i < node_num; i++){
+void testDominator(G_nodeList bg) {
+  for (int i = 0; i < node_num; i++) {
     fprintf(stderr, "Node %d's dominator:\n", i);
     G_nodeList gl = nodedom[i];
-    while(gl){
+    while (gl) {
       fprintf(stderr, "%d, ", gl->head->mykey);
       gl = gl->tail;
     }
     fprintf(stderr, "\n");
   }
-  while(bg){
+  while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
     G_nodeList gl = S_look(denv, b->label);
     fprintf(stderr, "Node %s (id: %d) dominates:\n", S_name(b->label), curr->mykey);
-    while(gl){
+    while (gl) {
       fprintf(stderr, "%d, ", gl->head->mykey);
       gl = gl->tail;
     }
     fprintf(stderr, "\n");
-    if(S_look(idomenv, b->label)){
+    if (S_look(idomenv, b->label)) {
       G_node idom = S_look(idomenv, b->label);
       fprintf(stderr, "Its idom is %d\n", idom->mykey);
     }
@@ -629,14 +628,14 @@ void testDominator(G_nodeList bg){
   }
 }
 
-void testDF(G_nodeList bg){
-  while(bg){
+void testDF(G_nodeList bg) {
+  while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
     fprintf(stderr, "Checking dominance frontier of node %d\n", curr->mykey);
-    if(S_look(domftrenv, b->label)){
+    if (S_look(domftrenv, b->label)) {
       G_nodeList domftr = S_look(domftrenv, b->label);
-      while(domftr){
+      while (domftr) {
         fprintf(stderr, "%d, ", domftr->head->mykey);
         domftr = domftr->tail;
       }
@@ -646,12 +645,12 @@ void testDF(G_nodeList bg){
   }
 }
 
-void testOrig(){
-  for(int i = 100; i < 1000; i++){
-    if(defsites[i]){
+void testOrig() {
+  for (int i = 100; i < 1000; i++) {
+    if (defsites[i]) {
       fprintf(stderr, "Current variable r%d defined in:\n", i);
       G_nodeList gl = defsites[i];
-      while(gl){
+      while (gl) {
         fprintf(stderr, "%d, ", gl->head->mykey);
         gl = gl->tail;
       }
@@ -660,14 +659,14 @@ void testOrig(){
   }
 }
 
-void testPhi(G_nodeList bg){
-  while(bg){
+void testPhi(G_nodeList bg) {
+  while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
-    if(S_look(phiinstrenv, b->label)){
+    if (S_look(phiinstrenv, b->label)) {
       fprintf(stderr, "Phi function at block %s:\n", S_name(b->label));
       AS_instrList instrs = S_look(phiinstrenv, b->label);
-      while(instrs){
+      while (instrs) {
         fprintf(stderr, "%s\n", instrs->head->u.OPER.assem);
         instrs = instrs->tail;
       }
@@ -676,13 +675,13 @@ void testPhi(G_nodeList bg){
   }
 }
 
-void testInsert(G_nodeList bg){
-  while(bg){
+void testInsert(G_nodeList bg) {
+  while (bg) {
     G_node h = bg->head;
     AS_block b = h->info;
-    if(S_look(instrenv, b->label)){
+    if (S_look(instrenv, b->label)) {
       AS_instrList instrs = S_look(instrenv, b->label);
-      while(instrs){
+      while (instrs) {
         fprintf(stderr, "%s\n", instrs->head->u.OPER.assem);
         instrs = instrs->tail;
       }
@@ -691,11 +690,11 @@ void testInsert(G_nodeList bg){
   }
 }
 
-void testssa(){
-  for(int i = 99; i <= tmp_num; i++){
-    if(ssa[i] == TRUE){
+void testssa() {
+  for (int i = 99; i <= tmp_num; i++) {
+    if (ssa[i] == TRUE) {
       fprintf(stderr, "%d: ssa\n", i);
-    } else{
+    } else {
       fprintf(stderr, "%d\n", i);
     }
   }
