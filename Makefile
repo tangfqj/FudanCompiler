@@ -35,7 +35,7 @@ test: clean
 	for file in $$(ls .); do \
 		if [ "$${file##*.}" = "fmj" ]; then \
 			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj > "$${file%%.*}".output; \
+			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj; \
 		fi \
 	done; \
 	cd $(CURDIR)
@@ -45,7 +45,19 @@ test-extra: clean
 	for file in $$(ls .); do \
 		if [ "$${file##*.}" = "fmj" ]; then \
 			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj > "$${file%%.*}".output; \
+			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj; \
+		fi \
+	done; \
+	cd $(CURDIR)
+
+test-extra-llvm: clean
+	@cd $(TEST_DIR)/extra; \
+	for file in $$(ls .); do \
+	  	if [ "$${file##*.}" = "fmj" ]; then \
+			echo "[$${file%%.*}]"; \
+			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj; \
+			$(LLVMLINK) --opaque-pointers "$${file%%.*}".8.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
+            $(LLI) -opaque-pointers "$${file%%.*}".ll > "$${file%%.*}".output && \
 		fi \
 	done; \
 	cd $(CURDIR)
