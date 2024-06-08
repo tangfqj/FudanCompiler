@@ -58,6 +58,7 @@ test-extra-llvm: clean
 			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj; \
 			$(LLVMLINK) --opaque-pointers "$${file%%.*}".8.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
             $(LLI) -opaque-pointers "$${file%%.*}".ll > "$${file%%.*}".output && \
+            echo $$?; \
 		fi \
 	done; \
 	cd $(CURDIR)
