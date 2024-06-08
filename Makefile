@@ -22,7 +22,7 @@ clean:
     		-name "*.ll" -o -name "*.xml" -o -name "*.output" \
     		-o -name "*.src" -o -name "*.ast" -o -name "*.irp" \
     		-o -name "*.stm" -o -name "*.ins" -o -name "*.ssa" \
-    		-o -name "*.cfg" -o -name "*.arm"\
+    		-o -name "*.cfg" -o -name "*.arm" -o -name "*.s" \
     		\) -exec $(RM) {} \;
 
 veryclean: clean
