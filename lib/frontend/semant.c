@@ -636,7 +636,7 @@ Tr_exp transA_CallStm(FILE *out, A_stm s) {
       transA_ExpList_Call(out, mety->u.meth.fl, s->u.call_stat.el, s->pos);
   long methoffset = (long)S_look(methoff, S_Symbol(s->u.call_stat.fun));
   Tr_exp methadd = Tr_ClassMethExp(obj->exp, methoffset - 1);
-  return Tr_CallStm(s->u.call_stat.fun, methadd, Tr_IdExp(this()), paras,
+  return Tr_CallStm(s->u.call_stat.fun, methadd, obj->exp, paras,
                     T_int);
 }
 
@@ -960,9 +960,9 @@ expty transA_CallExp(FILE *out, A_exp e) {
   Tr_exp methadd = Tr_ClassMethExp(obj->exp, methoffset - 1);
   Tr_exp txp;
   if (mety->u.meth.ret->kind == Ty_float) {
-    txp = Tr_CallExp(e->u.call.fun, methadd, Tr_IdExp(this()), paras, T_float);
+    txp = Tr_CallExp(e->u.call.fun, methadd, obj->exp, paras, T_float);
   } else {
-    txp = Tr_CallExp(e->u.call.fun, methadd, Tr_IdExp(this()), paras, T_int);
+    txp = Tr_CallExp(e->u.call.fun, methadd, obj->exp, paras, T_int);
   }
   return ExpTy(txp, mety->u.meth.ret, NULL);
 }
@@ -1324,12 +1324,12 @@ Tr_expList transA_NewOjbInit(S_symbol classid, Temp_temp obja) {
           case Ty_int:
             val = transA_Exp_NumConst(vd->elist->head, Ty_Int());
             loc = Tr_NewObjPos(obja, i);
-            txp = Tr_AssignStm(loc, val);
+            txp = Tr_AssignNewObj(loc, val);
             break;
           case Ty_float:
             val = transA_Exp_NumConst(vd->elist->head, Ty_Float());
             loc = Tr_NewObjPos(obja, i);
-            txp = Tr_AssignStm(loc, val);
+            txp = Tr_AssignNewObj(loc, val);
             break;
           case Ty_array:
             arr = transA_ExpList_NumConst(vd->elist, type->u.array);
@@ -1349,7 +1349,7 @@ Tr_expList transA_NewOjbInit(S_symbol classid, Temp_temp obja) {
       Temp_label mlb = Temp_namedlabel(S_name(mid));
       val = Tr_ClassMethLabel(mlb);
       loc = Tr_NewObjPos(obja, i);
-      txp = Tr_AssignStm(loc, val);
+      txp = Tr_AssignNewObj(loc, val);
       txpl = Tr_ExpList(txp, txpl);
     }
   }

@@ -65,4 +65,5 @@ Tr_exp Tr_Getfarray(Tr_exp exp);
 Tr_exp Tr_Cast(Tr_exp exp, T_type type);
 T_expList Tr_List(Tr_expList el);
 Tr_exp Tr_NewObjPos(Temp_temp obja, int pos);
+Tr_exp Tr_AssignNewObj(Tr_exp location, Tr_exp value);
 #endif

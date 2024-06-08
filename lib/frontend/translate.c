@@ -522,3 +522,7 @@ T_expList Tr_List(Tr_expList el) {
 Tr_exp Tr_NewObjPos(Temp_temp obja, int pos) {
   return Tr_Ex(T_Binop(T_plus, T_Temp(obja), T_IntConst(pos * SEM_ARCH_SIZE)));
 }
+
+Tr_exp Tr_AssignNewObj(Tr_exp location, Tr_exp value) {
+  return Tr_Nx(T_Move(T_Mem(unEx(location), T_int), unEx(value)));
+}
