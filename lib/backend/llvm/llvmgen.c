@@ -110,7 +110,7 @@ AS_instrList llvmepilog(Temp_label lend) {
 }
 
 /* Helper methods */
-void llvmMunchStm(T_stm s) {
+void llvmMunchStm(T_stm s) {\
   string ir = (string)checked_malloc(IR_MAXLEN);
   switch (s->kind) {
     case T_SEQ:
@@ -137,7 +137,8 @@ void llvmMunchStm(T_stm s) {
     case T_RETURN:
       if (s->u.EXP->kind == T_CONST) {
         if (s->u.EXP->type == T_int) {
-          sprintf(ir, "ret i64 %d", s->u.EXP->u.CONST.i);
+          sprintf(ir, "ret i64 %d", s->
+                                    u.EXP->u.CONST.i);
           emit(AS_Oper(ir, NULL, NULL, NULL));
         } else {  // s->u.EXP->type == T_float
           sprintf(ir, "ret double %f", s->u.EXP->u.CONST.f);
