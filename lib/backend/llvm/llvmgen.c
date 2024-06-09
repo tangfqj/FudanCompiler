@@ -632,7 +632,7 @@ void llvmMunchExtCall(Temp_temp ret, T_exp e) {
     Temp_temp arrptr = Temp_newtemp(T_int);
     Temp_temp arr = llvmMunchExp(e->u.ExtCALL.args->tail->head);
     sprintf(tsf, "%%`d0 = inttoptr i64 %%`s0 to i64*");
-    emit(AS_Oper(tsf, (arrptr, NULL), TL(arr, NULL), NULL));
+    emit(AS_Oper(tsf, TL(arrptr, NULL), TL(arr, NULL), NULL));
     Temp_temp pos = llvmMunchExp(e->u.ExtCALL.args->head);
     sprintf(ir, "call void @putfarray(i64 %%`s0, i64* %%`s1)");
     emit(AS_Oper(ir, NULL, TL(pos, TL(arrptr, NULL)), NULL));
