@@ -6,12 +6,12 @@ ARMCC    = arm-linux-gnueabihf-gcc
 QEMU     = qemu-arm
 
 BUILD_DIR = $(CURDIR)/build
-MAIN_EXE  = $(BUILD_DIR)/tools/main
+MAIN_EXE_LLVM  = $(BUILD_DIR)/tools/mainLLVM
 TEST_DIR  = $(CURDIR)/test
 
 MAKEFLAGS = --no-print-directory
 
-.PHONY: build clean veryclean rebuild test test-extra handin
+.PHONY: build clean veryclean rebuild test test-extra-llvm handin
 
 build:
 	@cmake -G Ninja -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Release; \
@@ -35,17 +35,7 @@ test: clean
 	for file in $$(ls .); do \
 		if [ "$${file##*.}" = "fmj" ]; then \
 			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj; \
-		fi \
-	done; \
-	cd $(CURDIR)
-
-test-extra: clean
-	@cd $(TEST_DIR)/extra; \
-	for file in $$(ls .); do \
-		if [ "$${file##*.}" = "fmj" ]; then \
-			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj; \
+			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
 		fi \
 	done; \
 	cd $(CURDIR)
@@ -53,9 +43,19 @@ test-extra: clean
 test-extra-llvm: clean
 	@cd $(TEST_DIR)/extra; \
 	for file in $$(ls .); do \
+		if [ "$${file##*.}" = "fmj" ]; then \
+			echo "[$${file%%.*}]"; \
+			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
+		fi \
+	done; \
+	cd $(CURDIR)
+
+test-extra-run-llvm: clean
+	@cd $(TEST_DIR)/extra; \
+	for file in $$(ls .); do \
 	  	if [ "$${file##*.}" = "fmj" ]; then \
 			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE) "$${file%%.*}" < "$${file%%.*}".fmj; \
+			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
 			$(LLVMLINK) --opaque-pointers "$${file%%.*}".8.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
             $(LLI) -opaque-pointers "$${file%%.*}".ll > "$${file%%.*}".output && \
             echo $$?; \

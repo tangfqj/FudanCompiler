@@ -10,9 +10,9 @@ set(LIBS
 
 add_dependencies(${LIBS} vendor_libsysy)
 
-set(main "main")
-add_executable(${main} main.c)
-target_link_libraries(${main} PUBLIC ${LIBS})
-install(TARGETS ${main}
+set(mainLLVM "mainLLVM")
+add_executable(${mainLLVM} mainLLVM.c)
+target_link_libraries(${mainLLVM} PUBLIC ${LIBS})
+install(TARGETS ${mainLLVM}
   RUNTIME DESTINATION bin
-  COMPONENT ${main})
+  COMPONENT ${mainLLVM})
