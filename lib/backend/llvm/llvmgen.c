@@ -122,8 +122,7 @@ void llvmMunchStm(T_stm s) {\
       emit(AS_Label(ir, s->u.LABEL));
       break;
     case T_JUMP:
-      sprintf(ir, "br label %%`j0");
-      emit(AS_Oper(ir, NULL, NULL, AS_Targets(LL(s->u.JUMP.jump, NULL))));
+      emit(AS_Oper("br label %`j0", NULL, NULL, AS_Targets(LL(s->u.JUMP.jump, NULL))));
       break;
     case T_CJUMP:
       llvmMunchCjump(s);

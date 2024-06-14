@@ -145,6 +145,7 @@ int main(int argc, const char* argv[]) {
     fprintf(stdout, "\n\n");
     fflush(stdout);
     fclose(stdout);
+
     struct C_block b = C_basicBlocks(sl);
     freopen(file_stm, "a", stdout);
     fprintf(stdout, "------Basic Blocks------\n");
@@ -162,7 +163,7 @@ int main(int argc, const char* argv[]) {
     fprintf(stdout, "\n\n");
     fflush(stdout);
     fclose(stdout);
-
+    b = C_basicBlocks(sl);
     // llvm instruction selection
     AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->ret_type);
     AS_blockList bodybl = NULL;
@@ -174,18 +175,15 @@ int main(int argc, const char* argv[]) {
     }
     AS_instrList epilogil = llvmepilog(b.label);
 
-//    G_nodeList bg = Create_bg(bodybl);  // create a basic block graph
-//
-//    freopen(file_ins, "a", stdout);
-//    fprintf(stdout, "\n------For function %s------\n", fdl->head->name);
-//    fprintf(stdout, "------Basic Block Graph------\n");
-//    Show_bg(stdout, bg);
-
     // put all the blocks into one AS list
     AS_instrList il = AS_traceSchedule(bodybl, prologil, epilogil, FALSE);
 
+    freopen(file_ins, "a", stdout);
+    fprintf(stdout, "\n------For function ----- %s\n\n", fdl->head->name);
     fprintf(stdout, "------~Final traced AS instructions~------\n");
     AS_printInstrList(stdout, il, Temp_name());
+    fflush(stdout);
+    fclose(stdout);
 
     // convert AS_instrList to SSA
     AS_instr prologi = il->head;
