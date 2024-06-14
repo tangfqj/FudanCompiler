@@ -148,21 +148,14 @@ void AS_print(FILE *out, AS_instr i, Temp_map m) {
   case I_OPER:
     format(r, i->u.OPER.assem, i->u.OPER.dst, i->u.OPER.src, i->u.OPER.jumps, m);
     fprintf(out, "%s", r);
-    fflush(out);
-    //fprintf(stderr, "%s\n", r);
     break;
   case I_LABEL:
     format(r, i->u.LABEL.assem, NULL, NULL, NULL, m);
     fprintf(out, "%s", r);
-    fflush(out);
-    //fprintf(stderr, "%s\n", r);
-    /* i->u.LABEL->label); */
     break;
   case I_MOVE:
     format(r, i->u.MOVE.assem, i->u.MOVE.dst, i->u.MOVE.src, NULL, m);
     fprintf(out, "%s", r);
-    fflush(out);
-    //fprintf(stderr, "%s\n", r);
     break;
   }
   fprintf(out, "\n");

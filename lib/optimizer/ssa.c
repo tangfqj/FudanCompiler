@@ -27,7 +27,7 @@ static int tmpdef[1000];
 static bool ssa[1000];
 static int tmpversion[1000];
 
-AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
+AS_instrList AS_instrList_to_SSA_LLVM(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
   InitSSA(bg);
   // Compute dominance
   computeDominator(bg);
@@ -41,12 +41,14 @@ AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList 
   // Rename variables
   InitRename();
   renameVariable(bg->head);
-  // Eliminate phi functions
-  // eliminatePhiFunction(bg);
+
   collectInstructions_llvm(bg);
   return bodyil_SSA;
 }
 
+AS_instrList AS_instrList_to_SSA_RPi(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
+  return bodyil;
+}
 void InitSSA(G_nodeList bg) {
   node_num = bg->head->mygraph->nodecount;
   for (int i = 0; i < node_num; i++) {

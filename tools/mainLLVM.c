@@ -96,12 +96,10 @@ int main(int argc, const char* argv[]) {
   sprintf(file_liv, "%s.5.ins", file);
   string file_ins = checked_malloc(IR_MAXLEN);
   sprintf(file_ins, "%s.5.ins", file);
-  string file_insxml = checked_malloc(IR_MAXLEN);
-  sprintf(file_insxml, "%s.6.ins", file);
   string file_cfg= checked_malloc(IR_MAXLEN);
-  sprintf(file_cfg, "%s.7.cfg", file);
+  sprintf(file_cfg, "%s.6.cfg", file);
   string file_ssa= checked_malloc(IR_MAXLEN);
-  sprintf(file_ssa, "%s.8.ssa", file);
+  sprintf(file_ssa, "%s.7.ssa", file);
 
   // lex & parse
   yyparse();
@@ -121,8 +119,6 @@ int main(int argc, const char* argv[]) {
 
   // type checking & translate
   T_funcDeclList fdl = transA_Prog(stderr, root, 8);
-  // fflush(stdout);
-  // fclose(stdout);
 
   while (fdl) {
     freopen(file_irp, "a", stdout);
@@ -230,7 +226,7 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
-    AS_instrList bodyil_in_SSA = AS_instrList_to_SSA(bodyil, lg, bg);
+    AS_instrList bodyil_in_SSA = AS_instrList_to_SSA_LLVM(bodyil, lg, bg);
 
     //print the AS_instrList to the ssa file
     AS_instrList finalssa = AS_splice(AS_InstrList(prologi, bodyil_in_SSA), AS_InstrList(epilogi, NULL));
