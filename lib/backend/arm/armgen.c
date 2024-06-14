@@ -176,8 +176,6 @@ void armMunchInstr(AS_instr inst) {
     case CJUMP:
       assert(cmpop != NULL);
       sprintf(ir, "b%s `j0", cmpop);
-      // emit(AS_Oper(ir, NULL, NULL, AS_Targets(LL(inst->u.OPER.jumps->labels->head,
-      // NULL))));
       emit(AS_Oper(ir, NULL, NULL, inst->u.OPER.jumps));
       cmpop = (string)checked_malloc(IR_MAXLEN);
       break;
