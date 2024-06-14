@@ -11,7 +11,7 @@
 
 AS_instrList AS_instrList_to_SSA_LLVM(AS_instrList bodyil, G_nodeList fg, G_nodeList bg);
 AS_instrList AS_instrList_to_SSA_RPi(AS_instrList bodyil, G_nodeList lg, G_nodeList bg);
-void InitSSA(G_nodeList bg);
+void InitSSA(G_nodeList bg, AS_instrList bodyil);
 void computeDominator(G_nodeList bg);
 void computeDominanceFrontier(G_node nd);
 void variablessa(G_nodeList lg);

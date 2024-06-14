@@ -56,7 +56,7 @@ test-extra-run-llvm: clean
 	  	if [ "$${file##*.}" = "fmj" ]; then \
 			echo "[$${file%%.*}]"; \
 			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
-			$(LLVMLINK) --opaque-pointers "$${file%%.*}".8.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
+			$(LLVMLINK) --opaque-pointers "$${file%%.*}".7.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
             $(LLI) -opaque-pointers "$${file%%.*}".ll > "$${file%%.*}".output && \
             echo $$?; \
 		fi \
