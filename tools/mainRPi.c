@@ -17,6 +17,7 @@
 #include "llvmgen.h"
 #include "ig.h"
 #include "ssa.h"
+#include "armgen.h"
 
 A_prog root;
 
@@ -96,16 +97,14 @@ int main(int argc, const char* argv[]) {
   sprintf(file_liv, "%s.5.ins", file);
   string file_ins = checked_malloc(IR_MAXLEN);
   sprintf(file_ins, "%s.5.ins", file);
-  string file_insxml = checked_malloc(IR_MAXLEN);
-  sprintf(file_insxml, "%s.6.ins", file);
-  string file_cfg= checked_malloc(IR_MAXLEN);
-  sprintf(file_cfg, "%s.7.cfg", file);
-  string file_ssa= checked_malloc(IR_MAXLEN);
-  sprintf(file_ssa, "%s.8.ssa", file);
-  string file_arm= checked_malloc(IR_MAXLEN);
-  sprintf(file_arm, "%s.9.arm", file);
-  string file_rpi= checked_malloc(IR_MAXLEN);
-  sprintf(file_rpi, "%s.10.s", file);
+  string file_cfg = checked_malloc(IR_MAXLEN);
+  sprintf(file_cfg, "%s.6.cfg", file);
+  string file_ssa = checked_malloc(IR_MAXLEN);
+  sprintf(file_ssa, "%s.7.ssa", file);
+  string file_arm = checked_malloc(IR_MAXLEN);
+  sprintf(file_arm, "%s.8.arm", file);
+  string file_rpi = checked_malloc(IR_MAXLEN);
+  sprintf(file_rpi, "%s.9.s", file);
 
   // lex & parse
   yyparse();
@@ -124,9 +123,7 @@ int main(int argc, const char* argv[]) {
   fclose(stdout);
 
   // type checking & translate
-  T_funcDeclList fdl = transA_Prog(stderr, root, 8);
-  // fflush(stdout);
-  // fclose(stdout);
+  T_funcDeclList fdl = transA_Prog(stderr, root, 4);
 
   while (fdl) {
     freopen(file_irp, "a", stdout);
@@ -149,6 +146,7 @@ int main(int argc, const char* argv[]) {
     fprintf(stdout, "\n\n");
     fflush(stdout);
     fclose(stdout);
+
     struct C_block b = C_basicBlocks(sl);
     freopen(file_stm, "a", stdout);
     fprintf(stdout, "------Basic Blocks------\n");
@@ -166,6 +164,7 @@ int main(int argc, const char* argv[]) {
     fprintf(stdout, "\n\n");
     fflush(stdout);
     fclose(stdout);
+    b = C_basicBlocks(sl);
 
     // llvm instruction selection
     AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->ret_type);
@@ -178,18 +177,15 @@ int main(int argc, const char* argv[]) {
     }
     AS_instrList epilogil = llvmepilog(b.label);
 
-//    G_nodeList bg = Create_bg(bodybl);  // create a basic block graph
-//
-//    freopen(file_ins, "a", stdout);
-//    fprintf(stdout, "\n------For function %s------\n", fdl->head->name);
-//    fprintf(stdout, "------Basic Block Graph------\n");
-//    Show_bg(stdout, bg);
-
     // put all the blocks into one AS list
     AS_instrList il = AS_traceSchedule(bodybl, prologil, epilogil, FALSE);
 
+    freopen(file_ins, "a", stdout);
+    fprintf(stdout, "\n------For function ----- %s\n\n", fdl->head->name);
     fprintf(stdout, "------~Final traced AS instructions~------\n");
     AS_printInstrList(stdout, il, Temp_name());
+    fflush(stdout);
+    fclose(stdout);
 
     // convert AS_instrList to SSA
     AS_instr prologi = il->head;
@@ -235,7 +231,7 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
-    AS_instrList bodyil_in_SSA = AS_instrList_to_SSA(bodyil, lg, bg);
+    AS_instrList bodyil_in_SSA = AS_instrList_to_SSA_RPI(bodyil, lg, bg);
 
     //print the AS_instrList to the ssa file
     AS_instrList finalssa = AS_splice(AS_InstrList(prologi, bodyil_in_SSA), AS_InstrList(epilogi, NULL));
@@ -260,7 +256,6 @@ int main(int argc, const char* argv[]) {
   fprintf(stdout, "declare void @putfarray(i64, i64*)\n");
   fclose(stdout);
 
-  // print the runtime functions for the 10.s file
   freopen(file_rpi,"a",stdout);
   fprintf(stdout, ".global malloc\n");
   fprintf(stdout, ".global getint\n");
