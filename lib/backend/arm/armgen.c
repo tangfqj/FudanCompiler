@@ -212,7 +212,7 @@ void armMunchRet(AS_instr inst) {
     float ret_f = atof(ret);
     moveFloat(ret_f, TL(r0, NULL));
   }
-  emit(AS_Oper("sub fp, sp, #32", NULL, NULL, NULL));
+  //emit(AS_Oper("sub fp, sp, #32", NULL, NULL, NULL));
   // pop r4-r10, lr
   ir = (string)checked_malloc(IR_MAXLEN);
   sprintf(ir, "pop {%%r4, %%r5, %%r6, %%r7, %%r8, %%r9, %%r10, lr}");
@@ -621,8 +621,14 @@ void armMunchExtCall(AS_instr inst) {
     int src_num = atoi(src);
     moveInt(src_num, TL(Temp_reg(0, T_int), NULL));
   }
+  if (!strcmp(meth, "@putfloat") && inst->u.OPER.src == NULL) {
+    typ = strtok(NULL, " ");
+    char* src = strtok(NULL, ")");
+    float src_num = atof(src);
+    moveFloat(src_num, TL(Temp_reg(0, T_float), NULL));
+  }
   ir = (string)checked_malloc(IR_MAXLEN);
-  sprintf(ir, "blx %s", meth + 1);
+  sprintf(ir, "bl %s", meth + 1);
   emit(AS_Oper(ir, TL(Temp_reg(0, T_int), NULL), NULL, NULL));
   callerSaveRet();
 }
@@ -926,7 +932,7 @@ void moveFloat(float f, Temp_tempList dst) {
 
   if (dst->head != NULL && dst->head->num < 99) {
     ir = (string)checked_malloc(IR_MAXLEN);
-    sprintf(ir, "vmov.f32 %%r%d, %%`s0", dst->head->num);
+    sprintf(ir, "vmov.f32 %%s%d, %%`s0", dst->head->num);
     emit(AS_Move(ir, dst, TL(t, NULL)));
     return;
   }
