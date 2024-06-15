@@ -105,6 +105,8 @@ int main(int argc, const char* argv[]) {
   sprintf(file_arm, "%s.8.arm", file);
   string file_rpi = checked_malloc(IR_MAXLEN);
   sprintf(file_rpi, "%s.9.s", file);
+  string file_itf = checked_malloc(IR_MAXLEN);
+  sprintf(file_itf, "%s.10.itf", file);
 
   // lex & parse
   yyparse();

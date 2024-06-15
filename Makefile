@@ -7,6 +7,7 @@ QEMU     = qemu-arm
 
 BUILD_DIR = $(CURDIR)/build
 MAIN_EXE_LLVM  = $(BUILD_DIR)/tools/mainLLVM
+MAIN_EXE_RPI = $(BUILD_DIR)/tools/mainRPi
 TEST_DIR  = $(CURDIR)/test
 
 MAKEFLAGS = --no-print-directory
@@ -30,12 +31,22 @@ veryclean: clean
 
 rebuild: veryclean build
 
-test: clean
+test-llvm: clean
 	@cd $(TEST_DIR); \
 	for file in $$(ls .); do \
 		if [ "$${file##*.}" = "fmj" ]; then \
 			echo "[$${file%%.*}]"; \
 			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
+		fi \
+	done; \
+	cd $(CURDIR)
+
+test-rpi: clean
+	@cd $(TEST_DIR); \
+	for file in $$(ls .); do \
+		if [ "$${file##*.}" = "fmj" ]; then \
+			echo "[$${file%%.*}]"; \
+			$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
 		fi \
 	done; \
 	cd $(CURDIR)
