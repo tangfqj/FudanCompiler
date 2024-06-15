@@ -909,6 +909,9 @@ expty transA_OpExp(FILE *out, A_exp e) {
     transError(out, e->pos, "Incompatible operand type! (int/float expected)");
   }
   Tr_exp txp = Tr_OpExp(e->u.op.oper, left->exp, right->exp);
+  if (e->u.op.oper == A_and || e->u.op.oper == A_or) {
+    return ExpTy(txp, Ty_Int(), NULL);
+  }
   if (left->value->kind == Ty_int && right->value->kind == Ty_int) {
     return ExpTy(txp, Ty_Int(), NULL);
   }

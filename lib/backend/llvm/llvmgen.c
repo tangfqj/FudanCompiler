@@ -420,7 +420,7 @@ void llvmMunchMove(T_stm s) {
       sprintf(ir, "%%`d0 = fadd double %%`s0, 0.0");
       emit(AS_Move(ir, TL(dst, NULL), TL(src, NULL)));
     } else {
-      fprintf(stderr, "Error in Move!");
+      fprintf(stderr, "Error in Move!\n");
     }
   }
   else {
@@ -461,7 +461,7 @@ void llvmMunchMove(T_stm s) {
           sprintf(ir, "%%`d0 = fadd double %%`s0, 0.0");
           emit(AS_Move(ir, TL(dst, NULL), TL(src, NULL)));
         } else {
-          fprintf(stderr, "Error in Move!");
+          fprintf(stderr, "Error in Move!\n");
         }
         break;
     }
