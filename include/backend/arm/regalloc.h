@@ -26,10 +26,10 @@ struct stack_ {
   int top;
   Temp_node data[500];
 };
-stack stkEmpty();
-void stkPush(stack s, Temp_node tn);
-void stkPop(stack s);
-Temp_node stkTop(stack s);
+stack stackEmpty();
+void stackPush(stack s, Temp_node tn);
+void stackPop(stack s);
+Temp_node stackTop(stack s);
 bool isEmpty(stack s);
 /* Helper functions */
 void InitReg();

@@ -10,7 +10,7 @@
 #include "util.h"
 
 AS_instrList AS_instrList_to_SSA_LLVM(AS_instrList bodyil, G_nodeList fg, G_nodeList bg);
-AS_instrList AS_instrList_to_SSA_RPi(AS_instrList bodyil, G_nodeList lg, G_nodeList bg);
+AS_instrList AS_instrList_to_SSA_RPI(AS_instrList bodyil, G_nodeList lg, G_nodeList bg);
 void InitSSA(G_nodeList bg, AS_instrList bodyil);
 void computeDominator(G_nodeList bg);
 void computeDominanceFrontier(G_node nd);
@@ -34,17 +34,17 @@ static Temp_temp srcVersion(Temp_temp tmp);
 static Temp_temp dstVersion(Temp_temp tmp);
 static void endVersion(Temp_temp tmp);
 /* Stack */
-#define STACK_SIZE 1000
-typedef struct stack_ *stack;
-struct stack_{
-  int top[STACK_SIZE];
-  Temp_temp data[STACK_SIZE][STACK_SIZE];
+#define STK_SIZE 1000
+typedef struct stk_ *stk;
+struct stk_{
+  int top[STK_SIZE];
+  Temp_temp data[STK_SIZE][STK_SIZE];
 };
 
-static stack stkEmpty();
-static void stkPush(stack s, int i, Temp_temp t);
-static void stkPop(stack s, int i);
-static Temp_temp stkTop(stack s, int i);
+static stk stkEmpty();
+static void stkPush(stk s, int i, Temp_temp t);
+static void stkPop(stk s, int i);
+static Temp_temp stkTop(stk s, int i);
 /* TEST */
 void testDominator(G_nodeList bg);
 void testDF(G_nodeList bg);

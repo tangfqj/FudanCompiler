@@ -1,5 +1,11 @@
 #include "libsysy32.h"
 
+float getfloat(){
+  float n;
+  scanf("%f", &n);
+  return n;
+}
+
 int getint() {
   int t;
   scanf("%d", &t);
@@ -20,6 +26,15 @@ int getarray(int a[]) {
   return n;
 }
 
+int getfarray(float a[]) {
+  int n;
+  scanf("%d", &n);
+  for (int i = 0; i < n; i++) {
+    scanf("%f", &a[i]);
+  }
+  return n;
+}
+
 void putint(int a) {
   printf("%d", a);
 }
@@ -28,10 +43,22 @@ void putch(int a) {
   printf("%c", a);
 }
 
+void putfloat(float a) {
+  printf("%f", a);
+}
+
 void putarray(int n, int a[]) {
   printf("%d:", n);
   for (int i = 0; i < n; i++)
     printf(" %d", a[i]);
+  printf("\n");
+}
+
+void putfarray(int n, float a[]) {
+  printf("%d:", n);
+  for (int i = 0; i < n; i++) {
+    printf(" %f", a[i]);
+  }
   printf("\n");
 }
 
@@ -44,7 +71,7 @@ __attribute((constructor)) void before_main() {
 __attribute((destructor)) void after_main() {
   for (int i = 1; i < _sysy_idx; i++) {
     fprintf(stderr, "Timer@%04d-%04d: %dH-%dM-%dS-%dus\n", \
-        _sysy_l1[i], _sysy_l2[i], _sysy_h[i], _sysy_m[i], _sysy_s[i], _sysy_us[i]);
+            _sysy_l1[i], _sysy_l2[i], _sysy_h[i], _sysy_m[i], _sysy_s[i], _sysy_us[i]);
     _sysy_us[0] += _sysy_us[i];
     _sysy_s[0] += _sysy_s[i];
     _sysy_us[0] %= 1000000;

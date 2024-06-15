@@ -21,7 +21,7 @@ static G_nodeList defsites[1000];
 static Temp_temp temptype[1000];
 static int node_num;
 static G_nodeList nodedom[200];  // dominates: #i dominates xxx
-static stack varstk;
+static stk varstk;
 static AS_instrList bodyil_SSA;
 static int tmpdef[1000];
 static bool ssa[1000];
@@ -46,7 +46,7 @@ AS_instrList AS_instrList_to_SSA_LLVM(AS_instrList bodyil, G_nodeList lg, G_node
   return bodyil_SSA;
 }
 
-AS_instrList AS_instrList_to_SSA_RPi(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
+AS_instrList AS_instrList_to_SSA_RPI(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
   return bodyil;
 }
 void InitSSA(G_nodeList bg, AS_instrList bodyil) {
@@ -586,27 +586,27 @@ static void endVersion(Temp_temp tmp) {
   stkPop(varstk, v);
 }
 /* Stack */
-static stack stkEmpty() {
-  stack s = checked_malloc(sizeof(*s));
-  for (int i = 0; i < STACK_SIZE; i++) {
+static stk stkEmpty() {
+  stk s = checked_malloc(sizeof(*s));
+  for (int i = 0; i < STK_SIZE; i++) {
     s->top[i] = -1;
   }
   return s;
 }
-static void stkPush(stack s, int i, Temp_temp t) {
+static void stkPush(stk s, int i, Temp_temp t) {
   if (!t) return;
   s->top[i]++;
   int top = s->top[i];
   s->data[i][top] = t;
 }
-static void stkPop(stack s, int i) {
+static void stkPop(stk s, int i) {
   if (s->top[i] == -1) {
     fprintf(stderr, "Error in stkPop (%d)\n", i);
     exit(1);
   }
   s->top[i]--;
 }
-static Temp_temp stkTop(stack s, int i) {
+static Temp_temp stkTop(stk s, int i) {
   int top = s->top[i];
   if (top == -1) {
     fprintf(stderr, "Error in stkTop (%d)\n", i);

@@ -42,7 +42,7 @@ void InitReg() {
     deal[i] = FALSE;
     colormap[i] = -1;
   }
-  stk = stkEmpty();
+  stk = stackEmpty();
   bodyil_alloc = NULL;
   spillcnt = 0;
   for (int i = 0; i < 2; i++) {
@@ -99,7 +99,7 @@ bool simplify() {
       if (neighbors[i]->degree < REG_INT && deal[i] == FALSE) {
         //fprintf(stderr, "Simplify int temp %d\n", neighbors[i]->mytemp->num);
         deal[i] = TRUE;
-        stkPush(stk, neighbors[i]);
+        stackPush(stk, neighbors[i]);
         for (int j = 0; j < neighbors[i]->adjs; j++) {
           int adj = neighbors[i]->adj[j];
           neighbors[adj]->degree--;
@@ -111,7 +111,7 @@ bool simplify() {
       if (neighbors[i]->degree < REG_FLOAT && deal[i] == FALSE) {
         //fprintf(stderr, "Simplify float temp %d\n", neighbors[i]->mytemp->num);
         deal[i] = TRUE;
-        stkPush(stk, neighbors[i]);
+        stackPush(stk, neighbors[i]);
         for (int j = 0; j < neighbors[i]->adjs; j++) {
           int adj = neighbors[i]->adj[j];
           neighbors[adj]->degree--;
@@ -161,8 +161,8 @@ bool isFinished() {
 
 void color() {
   while (!isEmpty(stk)) {
-    Temp_node tn = stkTop(stk);
-    stkPop(stk);
+    Temp_node tn = stackTop(stk);
+    stackPop(stk);
     tn->color = findColor(tn);
     colormap[tn->mytemp->num] = tn->color;
   }
@@ -325,23 +325,23 @@ int getReg(T_type type, bool is_src) {
 }
 
 /* Stack */
-stack stkEmpty() {
+stack stackEmpty() {
   stack s = (stack)checked_malloc(sizeof *stk);
   s->top = -1;
   return s;
 }
-void stkPush(stack s, Temp_node tn) {
+void stackPush(stack s, Temp_node tn) {
   s->top++;
   s->data[s->top] = tn;
 }
-void stkPop(stack s) {
+void stackPop(stack s) {
   if (s->top < 0) {
     fprintf(stderr, "Error: stack underflow\n");
     exit(1);
   }
   s->top--;
 }
-Temp_node stkTop(stack s) {
+Temp_node stackTop(stack s) {
   if (s->top < 0) {
     fprintf(stderr, "Error: stack underflow\n");
     exit(1);

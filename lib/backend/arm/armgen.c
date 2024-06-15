@@ -97,38 +97,38 @@ void armMunchInstr(AS_instr inst) {
   }
   //  fprintf(stderr, "Munch: %s\n", assem);
   switch (inst_type) {
-    case BR:
+    case ARM_BR:
       sprintf(ir, "b `j0");
       emit(AS_Oper(ir, NULL, NULL, inst->u.OPER.jumps));
       break;
-    case RET:
+    case ARM_RET:
       armMunchRet(inst);
       break;
-    case ADD:
+    case ARM_ADD:
       armMunchAdd(inst);
       break;
-    case SUB:
+    case ARM_SUB:
       armMunchSub(inst);
       break;
-    case MUL:
+    case ARM_MUL:
       armMunchMul(inst);
       break;
-    case DIV:
+    case ARM_DIV:
       armMunchDiv(inst);
       break;
-    case FADD:
+    case ARM_FADD:
       armMunchFbinop(inst, "add");
       break;
-    case FSUB:
+    case ARM_FSUB:
       armMunchFbinop(inst, "sub");
       break;
-    case FMUL:
+    case ARM_FMUL:
       armMunchFbinop(inst, "mul");
       break;
-    case FDIV:
+    case ARM_FDIV:
       armMunchFbinop(inst, "div");
       break;
-    case F2I:
+    case ARM_F2I:
       t = Temp_newtemp(T_float);
       sprintf(ir, "vcvt.s32.f32 %%`d0, %%`s0");
       emit(AS_Oper(ir, TL(t, inst->u.OPER.src), inst->u.OPER.src, NULL));
@@ -136,7 +136,7 @@ void armMunchInstr(AS_instr inst) {
       sprintf(ir, "vmov.f32 %%`d0, %%`s0");
       emit(AS_Move(ir, inst->u.OPER.dst, TL(t, NULL)));
       break;
-    case I2F:
+    case ARM_I2F:
       t = Temp_newtemp(T_float);
       sprintf(ir, "vmov.f32 %%`d0, %%`s0");
       emit(AS_Move(ir, TL(t, NULL), inst->u.OPER.src));
@@ -144,42 +144,42 @@ void armMunchInstr(AS_instr inst) {
       sprintf(ir, "vcvt.f32.s32 %%`d0, %%`s0");
       emit(AS_Oper(ir, TLS(inst->u.OPER.dst, TL(t, NULL)), TL(t, NULL), NULL));
       break;
-    case I2P:
+    case ARM_I2P:
       sprintf(ir, "mov %%`d0, %%`s0");
       emit(AS_Move(ir, inst->u.OPER.dst, inst->u.OPER.src));
       break;
-    case P2I:
+    case ARM_P2I:
       armMunchP2I(inst);
       break;
-    case LOAD:
+    case ARM_LOAD:
       armMunchLoad(inst);
       break;
-    case STORE:
+    case ARM_STORE:
       armMunchStore(inst);
       break;
-    case CALL:
+    case ARM_CALL:
       armMunchCall(inst);
       break;
-    case EXTCALL:
+    case ARM_EXTCALL:
       armMunchExtCall(inst);
       break;
-    case ICMP:
+    case ARM_ICMP:
       armMunchIcmp(inst);
       break;
-    case FCMP:
+    case ARM_FCMP:
       armMunchFcmp(inst);
       break;
-    case LABEL:
+    case ARM_LABEL:
       sprintf(ir, "%s:", getlabel(inst));
       emit(AS_Label(ir, inst->u.LABEL.label));
       break;
-    case CJUMP:
+    case ARM_CJUMP:
       assert(cmpop != NULL);
       sprintf(ir, "b%s `j0", cmpop);
       emit(AS_Oper(ir, NULL, NULL, inst->u.OPER.jumps));
       cmpop = (string)checked_malloc(IR_MAXLEN);
       break;
-    case END:
+    case ARM_END:
       break;
     default:
       fprintf(stderr, "Unknown type! %s\n", assem);
@@ -782,79 +782,79 @@ void armMunchFbinop(AS_instr inst, string bop) {
 }
 
 AS_type gettype(AS_instr ins) {
-  AS_type ret = NONE;
+  AS_type ret = ARM_NONE;
   string assem = ins->u.OPER.assem;
   if (ins->kind == I_MOVE) {
     assem = ins->u.MOVE.assem;
   } else if (ins->kind == I_LABEL) {
-    ret = LABEL;
+    ret = ARM_LABEL;
     return ret;
   }
   if (!strncmp(assem, "br label", 6)) {
-    ret = BR;
+    ret = ARM_BR;
     return ret;
   } else if (!strncmp(assem, "ret", 3)) {
-    ret = RET;
+    ret = ARM_RET;
     return ret;
   } else if (!strncmp(assem, "%`d0 = fadd", TYPELEN)) {
-    ret = FADD;
+    ret = ARM_FADD;
     return ret;
   } else if (!strncmp(assem, "%`d0 = add", TYPELEN)) {
-    ret = ADD;
+    ret = ARM_ADD;
     return ret;
   } else if (!strncmp(assem, "%`d0 = fsub", TYPELEN)) {
-    ret = FSUB;
+    ret = ARM_FSUB;
     return ret;
   } else if (!strncmp(assem, "%`d0 = sub", TYPELEN)) {
-    ret = SUB;
+    ret = ARM_SUB;
     return ret;
   } else if (!strncmp(assem, "%`d0 = fmul", TYPELEN)) {
-    ret = FMUL;
+    ret = ARM_FMUL;
     return ret;
   } else if (!strncmp(assem, "%`d0 = mul", TYPELEN)) {
-    ret = MUL;
+    ret = ARM_MUL;
     return ret;
   } else if (!strncmp(assem, "%`d0 = fdiv", TYPELEN)) {
-    ret = FDIV;
+    ret = ARM_FDIV;
     return ret;
   } else if (!strncmp(assem, "%`d0 = sdiv", TYPELEN)) {
-    ret = DIV;
+    ret = ARM_DIV;
     return ret;
   } else if (!strncmp(assem, "%`d0 = fptosi", TYPELEN)) {
-    ret = F2I;
+    ret = ARM_F2I;
     return ret;
   } else if (!strncmp(assem, "%`d0 = sitofp", TYPELEN)) {
-    ret = I2F;
+    ret = ARM_I2F;
     return ret;
   } else if (!strncmp(assem, "%`d0 = inttoptr", TYPELEN)) {
-    ret = I2P;
+    ret = ARM_I2P;
     return ret;
   } else if (!strncmp(assem, "%`d0 = load", TYPELEN)) {
-    ret = LOAD;
+    ret = ARM_LOAD;
     return ret;
   } else if (!strncmp(assem, "store", 5)) {
-    ret = STORE;
+    ret = ARM_STORE;
     return ret;
   } else if (!strncmp(assem, "%`d0 = ptrtoint", TYPELEN)) {
-    ret = P2I;
+    ret = ARM_P2I;
     return ret;
   } else if (!strncmp(assem, "%`d0 = call", TYPELEN)) {
-    ret = CALL;
+    ret = ARM_CALL;
     return ret;
   } else if (!strncmp(assem, "call", 4)) {
-    ret = EXTCALL;
+    ret = ARM_EXTCALL;
     return ret;
   } else if (!strncmp(assem, "%`d0 = icmp", TYPELEN)) {
-    ret = ICMP;
+    ret = ARM_ICMP;
     return ret;
   } else if (!strncmp(assem, "%`d0 = fcmp", TYPELEN)) {
-    ret = FCMP;
+    ret = ARM_FCMP;
     return ret;
   } else if (!strncmp(assem, "br i1 %`s0", TYPELEN)) {
-    ret = CJUMP;
+    ret = ARM_CJUMP;
     return ret;
   } else if (!strncmp(assem, "}", 1)) {
-    ret = END;
+    ret = ARM_END;
     return ret;
   }
   return ret;
