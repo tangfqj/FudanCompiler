@@ -61,6 +61,16 @@ test-extra-llvm: clean
 	done; \
 	cd $(CURDIR)
 
+test-extra-rpi: clean
+	@cd $(TEST_DIR)/extra; \
+	for file in $$(ls .); do \
+		if [ "$${file##*.}" = "fmj" ]; then \
+			echo "[$${file%%.*}]"; \
+			$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
+		fi \
+	done; \
+	cd $(CURDIR)
+
 test-extra-run-llvm: clean
 	@cd $(TEST_DIR)/extra; \
 	for file in $$(ls .); do \
@@ -69,6 +79,19 @@ test-extra-run-llvm: clean
 			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
 			$(LLVMLINK) --opaque-pointers "$${file%%.*}".7.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
             $(LLI) -opaque-pointers "$${file%%.*}".ll > "$${file%%.*}".output && \
+            echo $$?; \
+		fi \
+	done; \
+	cd $(CURDIR)
+
+test-extra-run-rpi: clean
+	@cd $(TEST_DIR)/extra; \
+	for file in $$(ls .); do \
+	  	if [ "$${file##*.}" = "fmj" ]; then \
+			echo "[$${file%%.*}]"; \
+			$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
+			$(ARMCC) -mcpu=cortex-a72 "$${file%%.*}".9.s $(BUILD_DIR)/vendor/libsysy/libsysy32.s --static -o "$${file%%.*}".s && \
+            $(QEMU) -B 0x1000 "$${file%%.*}".s > "$${file%%.*}".output && \
             echo $$?; \
 		fi \
 	done; \

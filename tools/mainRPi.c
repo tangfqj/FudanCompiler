@@ -18,6 +18,7 @@
 #include "ig.h"
 #include "ssa.h"
 #include "armgen.h"
+#include "regalloc.h"
 
 A_prog root;
 
@@ -28,6 +29,18 @@ AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList 
 static void print_to_ssa_file(string file_ssa, AS_instrList il) {
   freopen(file_ssa, "a", stdout);
   AS_printInstrList(stdout, il, Temp_name());
+  fclose(stdout);
+}
+
+static void print_to_arm_file(string file_arm, AS_instrList il) {
+  freopen(file_arm, "a", stdout);
+  AS_printInstrList(stdout, il, Temp_name());
+  fclose(stdout);
+}
+
+static void print_to_rpi_file(string file_rpi, AS_instrList il) {
+  freopen(file_rpi, "a", stdout);
+  ARM_printInstrList(stdout, il, Temp_name());
   fclose(stdout);
 }
 
@@ -238,6 +251,35 @@ int main(int argc, const char* argv[]) {
     //print the AS_instrList to the ssa file
     AS_instrList finalssa = AS_splice(AS_InstrList(prologi, bodyil_in_SSA), AS_InstrList(epilogi, NULL));
     print_to_ssa_file(file_ssa, finalssa);
+
+    // print the AS_instrList to the arm file
+    AS_instrList armprologi = armprolog(prologi);
+    AS_instrList armbodyil = armbody(bodyil_in_SSA);
+    AS_instrList finalarm = AS_splice(armprologi, armbodyil);
+    print_to_arm_file(file_arm, finalarm);
+
+    // print the interference graph to the itf file
+    // print the interfence graph to the itf file
+    G_graph fg_arm = FG_AssemFlowGraph(finalarm);
+    freopen(file_itf, "a", stdout);
+    fprintf(stdout, "------Flow Graph------\n");
+    fflush(stdout);
+    G_show(stdout, G_nodes(fg_arm), (void*)FG_show);
+    fflush(stdout);
+    G_nodeList lg_arm = Liveness(G_nodes(fg_arm));
+    fprintf(stdout, "/* ------Liveness Graph------*/\n");
+    Show_Liveness(stdout, lg_arm);
+    fflush(stdout);
+    G_nodeList ig = Create_ig(lg_arm);
+    fprintf(stdout, "------Interference Graph------\n");
+    fflush(stdout);
+    Show_ig(stdout, ig);
+    fflush(stdout);
+    fclose(stdout);
+
+    // Do register allocation
+    AS_instrList ilalloc = regalloc(finalarm, ig);
+    print_to_rpi_file(file_rpi, ilalloc);
 
     fdl = fdl->tail;
   }

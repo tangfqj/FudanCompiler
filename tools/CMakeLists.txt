@@ -16,3 +16,10 @@ target_link_libraries(${mainLLVM} PUBLIC ${LIBS})
 install(TARGETS ${mainLLVM}
   RUNTIME DESTINATION bin
   COMPONENT ${mainLLVM})
+
+set(mainRPi "mainRPi")
+add_executable(${mainRPi} mainRPi.c)
+target_link_libraries(${mainRPi} PUBLIC ${LIBS})
+install(TARGETS ${mainRPi}
+  RUNTIME DESTINATION bin
+  COMPONENT ${mainRPi})
