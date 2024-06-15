@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "fdmjast.h"
+#include "util.h"
 
 extern int line;
 extern int yylex();
@@ -76,8 +77,9 @@ extern A_prog root;
 %left LT LE GT GE
 %left ADD MINUS
 %left TIMES DIV
-%left UMINUS
+%right UMINUS
 %right '!'
+%left '(' '[' '.'
 %left IF
 %left ELSE
 
@@ -291,6 +293,7 @@ FORMALREST: /* empty */ {
 FORMAL: TYPE ID {
   $$ = A_Formal(A_Pos($1->pos->line, $1->pos->pos), $1, $2->u.v);
 } ;
+
 %% /* 3. programs */
 
 void yyerror(char *s) {
