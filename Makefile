@@ -97,6 +97,13 @@ test-extra-run-rpi: clean
 	done; \
 	cd $(CURDIR)
 
+try-rpi:
+	@cd $(TEST_DIR)/try; \
+	$(ARMCC) -mcpu=cortex-a72 test.9.s $(BUILD_DIR)/vendor/libsysy/libsysy32.s --static -o test.s && \
+    $(QEMU) -B 0x1000 test.s > test.output && \
+    echo $$?; \
+	cd $(CURDIR)
+
 handin:
 	@if [ ! -f docs/report.pdf ]; then \
 		echo "请先在docs文件夹下攥写报告, 并转换为'report.pdf'"; \
