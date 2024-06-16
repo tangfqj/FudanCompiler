@@ -1,5 +1,9 @@
-
 public int main() {
   float[] b={1,2};
+  putnum(b[1]);
   return b[0];
 }
+
+/*
+2.000000
+*/

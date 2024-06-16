@@ -5,3 +5,7 @@ public int main() {
 public class c1 {
    float x=1;
 }
+
+/*
+no output
+*/
