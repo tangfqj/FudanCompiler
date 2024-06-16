@@ -326,17 +326,17 @@ void llvmMunchCjump(T_stm s) {
         break;
     }
     if (!s0 && !s1) {
-      sprintf(ir, "%%`d0 = fcmp %s i64 %f, %f", op, s->u.CJUMP.left->u.CONST.f,
+      sprintf(ir, "%%`d0 = fcmp %s double %f, %f", op, s->u.CJUMP.left->u.CONST.f,
               s->u.CJUMP.right->u.CONST.f);
       emit(AS_Oper(ir, TL(cond, NULL), NULL, NULL));
     } else if (!s0) {
-      sprintf(ir, "%%`d0 = fcmp %s i64 %f, %%`s0", op, s->u.CJUMP.left->u.CONST.f);
+      sprintf(ir, "%%`d0 = fcmp %s double %f, %%`s0", op, s->u.CJUMP.left->u.CONST.f);
       emit(AS_Oper(ir, TL(cond, NULL), TL(s1, NULL), NULL));
     } else if (!s1) {
-      sprintf(ir, "%%`d0 = fcmp %s i64 %%`s0, %f", op, s->u.CJUMP.right->u.CONST.f);
+      sprintf(ir, "%%`d0 = fcmp %s double %%`s0, %f", op, s->u.CJUMP.right->u.CONST.f);
       emit(AS_Oper(ir, TL(cond, NULL), TL(s0, NULL), NULL));
     } else {
-      sprintf(ir, "%%`d0 = fcmp %s i64 %%`s0, %%`s1", op);
+      sprintf(ir, "%%`d0 = fcmp %s double %%`s0, %%`s1", op);
       emit(AS_Oper(ir, TL(cond, NULL),
                    TL(s0, TL(s1, NULL)), NULL));
     }

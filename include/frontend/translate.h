@@ -43,7 +43,7 @@ Tr_exp Tr_Stoptime();
 // exps
 Tr_expList Tr_ExpList(Tr_exp head, Tr_expList tail);
 Tr_exp Tr_OpExp(A_binop op, Tr_exp left, Tr_exp right);
-Tr_exp Tr_ArrayExp(Tr_exp arr, Tr_exp pos);
+Tr_exp Tr_ArrayExp(Tr_exp arr, Tr_exp pos, T_type type);
 Tr_exp Tr_CallExp(string meth, Tr_exp clazz, Tr_exp thiz, Tr_expList el, T_type type);
 Tr_exp Tr_ClassVarExp(Tr_exp clazz, int offset);
 Tr_exp Tr_ClassMethExp(Tr_exp clazz, int offset);

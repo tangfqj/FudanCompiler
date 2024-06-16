@@ -385,11 +385,11 @@ Tr_exp Tr_OpExp(A_binop op, Tr_exp left, Tr_exp right) {
   return Tr_Cx(trues, falses, cond);
 }
 
-Tr_exp Tr_ArrayExp(Tr_exp arr, Tr_exp pos) {
+Tr_exp Tr_ArrayExp(Tr_exp arr, Tr_exp pos, T_type type) {
   return Tr_Ex(
       T_Mem(T_Binop(T_plus, unEx(arr),
                     T_Binop(T_mul, unEx(pos), T_IntConst(SEM_ARCH_SIZE))),
-            T_int));
+            type));
 }
 
 Tr_exp Tr_CallExp(string meth, Tr_exp clazz, Tr_exp thiz, Tr_expList el,

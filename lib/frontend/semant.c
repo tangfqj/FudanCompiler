@@ -939,7 +939,12 @@ expty transA_ArrayExp(FILE *out, A_exp e) {
   } else {  // Ty_float
     pos = Tr_Cast(t2->exp, T_int);
   }
-  Tr_exp txp = Tr_ArrayExp(t1->exp, pos);
+  Tr_exp txp;
+  if (t1->value->u.array->kind == Ty_int) {
+    txp = Tr_ArrayExp(t1->exp, pos, T_int);
+  } else {
+    txp = Tr_ArrayExp(t1->exp, pos, T_float);
+  }
   return ExpTy(txp, t1->value->u.array, t1->value->u.array);
 }
 
