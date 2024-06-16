@@ -72,6 +72,33 @@ test-rpi: clean
         	fi; \
         cd $(CURDIR)
 
+run-llvm: clean
+	@cd $(TEST_DIR); \
+    	if [ -z "$(TEST)" ]; then \
+    		for file in $$(ls .); do \
+    			if [ "$${file##*.}" = "fmj" ]; then \
+    				echo "[$${file%%.*}]"; \
+    				$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
+    				$(LLVMLINK) --opaque-pointers "$${file%%.*}".7.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
+					$(LLI) -opaque-pointers "$${file%%.*}".ll > "$${file%%.*}".output && \
+					echo $$?; \
+    			fi \
+    		done; \
+    	else \
+    		file=$(TEST); \
+    		if [ "$${file##*.}" = "fmj" ]; then \
+    			echo "[$${file%%.*}]"; \
+    			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file}"; \
+    			$(LLVMLINK) --opaque-pointers "$${file%%.*}".7.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o "$${file%%.*}".ll && \
+				$(LLI) -opaque-pointers "$${file%%.*}".ll > "$${file%%.*}".output && \
+				echo $$?; \
+    		else \
+    			echo "Error: Specified file does not exist"; \
+    			exit 1; \
+    		fi \
+    	fi; \
+    cd $(CURDIR)
+
 test-extra-run-llvm: clean
 	@cd $(TEST_DIR)/extra; \
 	for file in $$(ls .); do \
