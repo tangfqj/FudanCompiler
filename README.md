@@ -3,7 +3,7 @@
 ## 💻 Config & Install
 
 ### 📦 Prerequisites
-Our compiler is developed and tested on **Ubuntu20.04 LTS**. You may follow the tutorial [here](#Tutorial of Installing Prerequisites) to install the prerequisites.
+Our compiler is developed and tested on **Ubuntu20.04 LTS**. You may follow the tutorial [here](#Tutorial-of-Installing-Prerequisites) to install the prerequisites.
 
 
 ### 🔨 Build
@@ -36,7 +36,7 @@ This project is mainly based on the course homework of Compiler Cource (Honor Tr
 
 I would like to thank the instructor Prof. Xiaoyang Wang and the TA Jiangfan and Yanjun for their guidance and help.
 
-## 📌 Tutorial of Installing Prerequisites
+## Tutorial of Installing Prerequisites
 - Install gcc-10 and g++-10
 ```angular2html
 sudo apt update
