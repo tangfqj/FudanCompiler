@@ -21,3 +21,7 @@ public class c2 extends c1 {
         return this.y;
     }
 }
+
+/*
+no output
+*/

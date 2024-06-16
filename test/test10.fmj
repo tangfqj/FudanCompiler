@@ -3,12 +3,17 @@ public int main() {
     int[] a = {1, 2};
     class c1 c;
     c = new c1();
-    return c.m(c, a, 233);
+    putnum(c.m(c, a, 233));
+    return 0;
 }
 
 public class c1 {
-    int x;
+    int x = 1;
     public int m (class c1 f1, int[] f2, int f3) {
         return f1.x + f2[1] + f3;
     }
 }
+
+/*
+236
+*/

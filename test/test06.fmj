@@ -9,3 +9,7 @@ public class c1 {
         return a;
     }
 }
+
+/*
+no output
+*/

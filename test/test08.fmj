@@ -25,3 +25,7 @@ public class c2 extends c1 {
 public class c3 {
     int x = 6;
 }
+
+/*
+no output
+*/
