@@ -12,9 +12,9 @@ TEST_DIR  = $(CURDIR)/test
 
 MAKEFLAGS = --no-print-directory
 
-.PHONY: build clean veryclean rebuild test test-extra-llvm handin
+.PHONY: compile clean veryclean test-llvm test-rpi handin
 
-build:
+compile:
 	@cmake -G Ninja -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Release; \
 	cd $(BUILD_DIR) && ninja
 
@@ -24,52 +24,53 @@ clean:
     		-o -name "*.src" -o -name "*.ast" -o -name "*.irp" \
     		-o -name "*.stm" -o -name "*.ins" -o -name "*.ssa" \
     		-o -name "*.cfg" -o -name "*.arm" -o -name "*.s" \
+    		-o -name "*.itf" \
     		\) -exec $(RM) {} \;
 
 veryclean: clean
 	@$(RM) $(BUILD_DIR)
 
-rebuild: veryclean build
-
 test-llvm: clean
 	@cd $(TEST_DIR); \
-	for file in $$(ls .); do \
-		if [ "$${file##*.}" = "fmj" ]; then \
-			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
-		fi \
-	done; \
-	cd $(CURDIR)
+    	if [ -z "$(TEST)" ]; then \
+    		for file in $$(ls .); do \
+    			if [ "$${file##*.}" = "fmj" ]; then \
+    				echo "[$${file%%.*}]"; \
+    				$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
+    			fi \
+    		done; \
+    	else \
+    		file=$(TEST); \
+    		if [ "$${file##*.}" = "fmj" ]; then \
+    			echo "[$${file%%.*}]"; \
+    			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file}"; \
+    		else \
+    			echo "Error: Specified file does not exist"; \
+    			exit 1; \
+    		fi \
+    	fi; \
+    cd $(CURDIR)
 
 test-rpi: clean
 	@cd $(TEST_DIR); \
-	for file in $$(ls .); do \
-		if [ "$${file##*.}" = "fmj" ]; then \
-			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
-		fi \
-	done; \
-	cd $(CURDIR)
-
-test-extra-llvm: clean
-	@cd $(TEST_DIR)/extra; \
-	for file in $$(ls .); do \
-		if [ "$${file##*.}" = "fmj" ]; then \
-			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE_LLVM) "$${file%%.*}" < "$${file%%.*}".fmj; \
-		fi \
-	done; \
-	cd $(CURDIR)
-
-test-extra-rpi: clean
-	@cd $(TEST_DIR)/extra; \
-	for file in $$(ls .); do \
-		if [ "$${file##*.}" = "fmj" ]; then \
-			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
-		fi \
-	done; \
-	cd $(CURDIR)
+        	if [ -z "$(TEST)" ]; then \
+        		for file in $$(ls .); do \
+        			if [ "$${file##*.}" = "fmj" ]; then \
+        				echo "[$${file%%.*}]"; \
+        				$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
+        			fi \
+        		done; \
+        	else \
+        		file=$(TEST); \
+        		if [ "$${file##*.}" = "fmj" ]; then \
+        			echo "[$${file%%.*}]"; \
+        			$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file}"; \
+        		else \
+        			echo "Error: Specified file does not exist"; \
+        			exit 1; \
+        		fi \
+        	fi; \
+        cd $(CURDIR)
 
 test-extra-run-llvm: clean
 	@cd $(TEST_DIR)/extra; \
@@ -112,4 +113,4 @@ handin:
 	echo "请输入'学号-姓名' (例如: 12345678910-某个人)"; \
 	read filename; \
 	zip -q -r "docs/$$filename-final.zip" \
-	  include lib tools CMakeLists.txt docs/report.pdf
+	  include lib tools vendor test CMakeLists.txt docs/report.pdf
