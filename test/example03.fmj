@@ -3,3 +3,7 @@ public int main() {
   while (b) b=0; 
   return b;
 }
+
+/*
+no output
+*/
