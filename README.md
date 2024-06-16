@@ -87,7 +87,6 @@ sudo apt-get install ninja-build
 ```angular2html
 sudo apt install ninja-build pkg-config libglib2.0-dev
 cd ~/software
-# 下载 qemu-6.2.0.tar.xz
 wget https://download.qemu.org/qemu-6.2.0.tar.xz
 tar xf qemu-6.2.0.tar.xz
 cd qemu-6.2.0
