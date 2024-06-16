@@ -379,10 +379,10 @@ T_funcDecl transA_MethodDecl(FILE *out, S_table mtbl, A_methodDecl md) {
   S_endScope(venv);
   S_symbol mid = S_link(mety->u.meth.from, S_Symbol(md->id));
   T_type ret_type;
-  if (mety->u.meth.ret->kind == Ty_int) {
-    ret_type = T_int;
-  } else {
+  if (mety->u.meth.ret->kind == Ty_float) {
     ret_type = T_float;
+  } else {
+    ret_type = T_int;
   }
   return Tr_ClassMethod(S_name(mid), paras, vdl, sl, ret_type);
 }
@@ -401,7 +401,12 @@ Temp_temp transA_Formal(FILE *out, Ty_field field, A_formal f) {
   if (S_look(venv, field->name) != NULL) {
     transError(out, f->pos, "Formal redeclaration!");
   }
-  Temp_temp ftmp = Temp_newtemp(T_int);
+  Temp_temp ftmp;
+  if (field->ty->kind == Ty_float) {
+    ftmp = Temp_newtemp(T_float);
+  } else {
+    ftmp = Temp_newtemp(T_int);
+  }
   S_enter(venv, field->name, E_VarEntry(NULL, field->ty, ftmp));
   return ftmp;
 }
@@ -692,7 +697,8 @@ Tr_exp transA_Putnum(FILE *out, A_stm s) {
   }
   if (t->value->kind != Ty_int && t->value->kind != Ty_float) {
     transError(out, s->pos, "Incompatible argument type! (int expected)");
-  } else if (t->value->kind == Ty_int) {
+  }
+  if (t->value->kind == Ty_int) {
     return Tr_Putint(t->exp);
   }
   // Ty_float
@@ -993,7 +999,12 @@ expty transA_ClassVarExp(FILE *out, A_exp e) {
   }
   E_enventry vety = S_look(vtbl, S_Symbol(e->u.classvar.var));
   long varoffset = (long)S_look(varoff, S_Symbol(e->u.classvar.var));
-  Tr_exp txp = Tr_ClassVarExp(obj->exp, varoffset - 1);
+  Tr_exp txp;
+  if (vety->u.var.ty->kind == Ty_float) {
+    txp = Tr_ClassVarExp(obj->exp, varoffset - 1, T_float);
+  } else {
+    txp = Tr_ClassVarExp(obj->exp, varoffset - 1, T_int);
+  }
   return ExpTy(txp, vety->u.var.ty, vety->u.var.ty);
 }
 
@@ -1332,12 +1343,12 @@ Tr_expList transA_NewOjbInit(S_symbol classid, Temp_temp obja) {
           case Ty_int:
             val = transA_Exp_NumConst(vd->elist->head, Ty_Int());
             loc = Tr_NewObjPos(obja, i);
-            txp = Tr_AssignNewObj(loc, val);
+            txp = Tr_AssignNewObj(loc, val, T_int);
             break;
           case Ty_float:
             val = transA_Exp_NumConst(vd->elist->head, Ty_Float());
             loc = Tr_NewObjPos(obja, i);
-            txp = Tr_AssignNewObj(loc, val);
+            txp = Tr_AssignNewObj(loc, val, T_float);
             break;
           case Ty_array:
             arr = transA_ExpList_NumConst(vd->elist, type->u.array);
@@ -1357,7 +1368,7 @@ Tr_expList transA_NewOjbInit(S_symbol classid, Temp_temp obja) {
       Temp_label mlb = Temp_namedlabel(S_name(mid));
       val = Tr_ClassMethLabel(mlb);
       loc = Tr_NewObjPos(obja, i);
-      txp = Tr_AssignNewObj(loc, val);
+      txp = Tr_AssignNewObj(loc, val, T_int);
       txpl = Tr_ExpList(txp, txpl);
     }
   }

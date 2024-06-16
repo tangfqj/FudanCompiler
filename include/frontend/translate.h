@@ -45,7 +45,7 @@ Tr_expList Tr_ExpList(Tr_exp head, Tr_expList tail);
 Tr_exp Tr_OpExp(A_binop op, Tr_exp left, Tr_exp right);
 Tr_exp Tr_ArrayExp(Tr_exp arr, Tr_exp pos, T_type type);
 Tr_exp Tr_CallExp(string meth, Tr_exp clazz, Tr_exp thiz, Tr_expList el, T_type type);
-Tr_exp Tr_ClassVarExp(Tr_exp clazz, int offset);
+Tr_exp Tr_ClassVarExp(Tr_exp clazz, int offset, T_type type);
 Tr_exp Tr_ClassMethExp(Tr_exp clazz, int offset);
 Tr_exp Tr_ClassMethLabel(Temp_label label);
 Tr_exp Tr_BoolConst(bool b);
@@ -65,5 +65,5 @@ Tr_exp Tr_Getfarray(Tr_exp exp);
 Tr_exp Tr_Cast(Tr_exp exp, T_type type);
 T_expList Tr_List(Tr_expList el);
 Tr_exp Tr_NewObjPos(Temp_temp obja, int pos);
-Tr_exp Tr_AssignNewObj(Tr_exp location, Tr_exp value);
+Tr_exp Tr_AssignNewObj(Tr_exp location, Tr_exp value, T_type type);
 #endif

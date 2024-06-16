@@ -398,9 +398,9 @@ Tr_exp Tr_CallExp(string meth, Tr_exp clazz, Tr_exp thiz, Tr_expList el,
   return Tr_Ex(T_Call(meth, unEx(clazz), paras, type));
 }
 
-Tr_exp Tr_ClassVarExp(Tr_exp clazz, int offset) {
+Tr_exp Tr_ClassVarExp(Tr_exp clazz, int offset, T_type type) {
   return Tr_Ex(T_Mem(
-      T_Binop(T_plus, unEx(clazz), T_IntConst(offset * SEM_ARCH_SIZE)), T_int));
+      T_Binop(T_plus, unEx(clazz), T_IntConst(offset * SEM_ARCH_SIZE)), type));
 }
 
 Tr_exp Tr_ClassMethExp(Tr_exp clazz, int offset) {
@@ -523,6 +523,6 @@ Tr_exp Tr_NewObjPos(Temp_temp obja, int pos) {
   return Tr_Ex(T_Binop(T_plus, T_Temp(obja), T_IntConst(pos * SEM_ARCH_SIZE)));
 }
 
-Tr_exp Tr_AssignNewObj(Tr_exp location, Tr_exp value) {
-  return Tr_Nx(T_Move(T_Mem(unEx(location), T_int), unEx(value)));
+Tr_exp Tr_AssignNewObj(Tr_exp location, Tr_exp value, T_type type) {
+  return Tr_Nx(T_Move(T_Mem(unEx(location), type), unEx(value)));
 }
