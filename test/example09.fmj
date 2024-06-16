@@ -14,3 +14,7 @@ public class c1 extends c0 {
       return this.a+z;
    }
 }
+
+/*
+no output
+*/

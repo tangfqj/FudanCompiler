@@ -3,3 +3,7 @@ public int main() {
   b[0]=(!b[0]);
   return length(b);
 }
+
+/*
+no output
+*/

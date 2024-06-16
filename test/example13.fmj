@@ -2,3 +2,7 @@ public int main() {
   while (true) break;
   return false;
 }
+
+/*
+no output
+*/

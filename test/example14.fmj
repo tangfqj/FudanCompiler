@@ -16,3 +16,7 @@ public class c1 extends c {
       return new c().m(1);
    }
 }
+
+/*
+no output
+*/
