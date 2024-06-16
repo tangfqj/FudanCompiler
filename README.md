@@ -1,6 +1,6 @@
 # Fudan Compiler
 
-## 💻 Config & Install
+## 💻 Install
 
 ### 📦 Prerequisites
 Our compiler is developed and tested on **Ubuntu20.04 LTS**. You may follow the tutorial [here](#Tutorial-of-Installing-Prerequisites) to install the prerequisites.
