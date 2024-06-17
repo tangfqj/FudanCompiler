@@ -22,8 +22,6 @@ A_prog root;
 
 extern int yyparse();
 
-AS_instrList AS_instrList_to_SSA(AS_instrList bodyil, G_nodeList lg, G_nodeList bg);
-
 static void print_to_ssa_file(string file_ssa, AS_instrList il) {
   freopen(file_ssa, "a", stdout);
   AS_printInstrList(stdout, il, Temp_name());
