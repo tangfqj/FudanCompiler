@@ -51,9 +51,10 @@ AS_instrList AS_instrList_to_SSA_RPI(AS_instrList bodyil, G_nodeList lg, G_nodeL
 }
 void InitSSA(G_nodeList bg, AS_instrList bodyil) {
   node_num = bg->head->mygraph->nodecount;
-  for (int i = 0; i < node_num; i++) {
-    nodedom[i] = NULL;
+  for (int i = 1; i < node_num; i++) {
+    nodedom[i] = bg;
   }
+  nodedom[0] = G_NodeList(bg->head, NULL);
   denv = S_empty();
   idomenv = S_empty();
   domftrenv = S_empty();
@@ -337,6 +338,7 @@ void renameVariable(G_node nd) {
         Temp_tempList phitmph = phitmp;
         for (int i = 0; i < j; ++i) phitmp = phitmp->tail;
         assert(phitmp);
+        //fprintf(stderr, "From block %s to block %s: replace %d with %d\n", S_name(b->label), S_name(yb->label), phitmp->head->num, srcVersion(phitmp->head)->num);
         phitmp->head = srcVersion(phitmp->head);
         yinstrs->head = AS_Oper(yinstr->u.OPER.assem, yinstr->u.OPER.dst, phitmph,
                                 yinstr->u.OPER.jumps);
@@ -488,7 +490,8 @@ static G_nodeList Intersect(G_nodeList a, G_nodeList b) {
 }
 
 static bool isDominate(G_node a, G_node b) {
-  G_nodeList gl = nodedom[b->mykey];
+  AS_block blk = b->info;
+  G_nodeList gl = S_look(denv, blk->label);
   while (gl) {
     G_node g = gl->head;
     if (g->mykey == a->mykey) return TRUE;
