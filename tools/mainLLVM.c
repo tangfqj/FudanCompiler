@@ -97,7 +97,7 @@ int main(int argc, const char* argv[]) {
     struct C_block b = C_basicBlocks(sl); //break the linearized IR tree into basic blocks
     freopen(file_stm, "a", stdout);
     fprintf(stdout, "------Basic Blocks------\n");
-    for (C_stmListList sll = b.stmLists; sll; sll = sll->tail) { //print the basic blocks.
+    for (C_stmListList sll = b.stmLists; sll; sll = sll->tail) {
       // Each block is a list of statements starting with a label, ending with a jump
       fprintf(stdout, "For Label=%s\n", S_name(sll->head->head->u.LABEL));
       printStm_StmList(stdout, sll->head, 0); //print the statements in the block
@@ -106,50 +106,17 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
-    /* No need to trace schedule for now, as we are not using it
-    sl = C_traceSchedule(b);
-    freopen(file_stm, "a", stdout);
-    fprintf(stdout, "------Canonical IR Tree------\n");
-    printStm_StmList(stdout, sl, 0);
-    fprintf(stdout, "\n\n");
-    fflush(stdout);
-    fclose(stdout);
-
-    //b = C_basicBlocks(sl);
-    */
-
-    // llvm instruction selection. First making the head of the function, then the body, then the epilog
-
-    //Making LLVM IR function header. See llvmgen.h for the function prototype, and llvmgen.c for the implementation
-    //fprintf(stderr, "Instruction selection for function: %s\n", fdl->head->name);
-    AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->ret_type); //add the prolog of the function
+    // llvm instruction selection
+    AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->ret_type);
     AS_blockList bodybl = NULL; //making an empty body
-    for (C_stmListList sll = b.stmLists; sll; sll = sll->tail) { // for each basic block we do the instruction selection
-
-      /* ****************************************************************************************************/
-      //
-      //      The followsing is the instruction selection function. It takes a list of statements and returns a list of AS instructions.
-      //      YOU ARE SUPPOSED TO IMPLEMENT THIS FUNCTION. THE FUNCTION IS IN llvmgen.c. THE FUNCTION IS CALLED llvmbody.
-
-      AS_instrList bil = llvmbody(sll->head); //This is the instruction selection function. See llvmgen.h for the function prototype.
-
-
-      //AS_printInstrList(stderr, bil, Temp_name()); //you may debug your instruction selection result of a block here
-      /* ***************************************************************************************************  */
-
-      AS_blockList bbl = AS_BlockList(AS_Block(bil), NULL); //making the list of AS instructions into a block of AS instructions
+    for (C_stmListList sll = b.stmLists; sll; sll = sll->tail) {
+      AS_instrList bil = llvmbody(sll->head);
+      AS_blockList bbl = AS_BlockList(AS_Block(bil), NULL);
       bodybl = AS_BlockSplice(bodybl, bbl); //putting the block into the list of blocks
     }
-    /* not necessary for now
-    if (bodybl && bodybl->head && bodybl->head->label) { //if the block has a label, we need to make sure the first instruction jumps to it
-      AS_instrList bil = llvmbodybeg(bodybl->head->label);  //add the necessary jump instruction
-      AS_blockList bbl = AS_BlockList(AS_Block(bil), NULL); //make it into the block
-      bodybl = AS_BlockSplice(bbl, bodybl); //merge the block
-    }
-    */
-    AS_instrList epilogil = llvmepilog(b.label); //add the epilog of the function. See llvmgen.h for the function prototype.
+    AS_instrList epilogil = llvmepilog(b.label);
 
-    //Now make a control flow graph (CFG) of the function. See assemblock.h for the function prototype
+    //Now make a control flow graph (CFG) of the function.
     G_nodeList bg = Create_bg(bodybl); // CFG
 
     freopen(file_ins, "a", stdout);
@@ -218,6 +185,7 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
+    // print the basic block graph again
     freopen(file_cfg, "a", stdout);
     fprintf(stdout, "------Basic Block Graph------\n");
     Show_bg(stdout, bg);
@@ -227,7 +195,7 @@ int main(int argc, const char* argv[]) {
 
     AS_instrList bodyil_in_SSA = AS_instrList_to_SSA_LLVM(bodyil, lg, bg);
 
-    //print the AS_instrList to the ssa file`
+    //print the AS_instrList to the ssa file
     AS_instrList finalssa = AS_splice(AS_InstrList(prologi, bodyil_in_SSA), AS_InstrList(epilogi, NULL));
     print_to_ssa_file(file_ssa, finalssa);
     fdl = fdl->tail;
