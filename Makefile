@@ -54,32 +54,6 @@ test-llvm: clean
     	fi; \
     cd $(CURDIR)
 
-ans: clean
-	@cd $(TEST_DIR); \
-		if [ -z "$(TEST)" ]; then \
-			for file in $$(ls .); do \
-				if [ "$${file##*.}" = "fmj" ]; then \
-					echo "[$${file%%.*}]"; \
-					$(FMJ2AST) "$${file%%.*}"; \
-					$(AST2IRP) -f xml "$${file%%.*}"; \
-					$(IRP2LLVM) "$${file%%.*}"; \
-				fi \
-			done; \
-		else \
-			file=$(TEST); \
-			if [ "$${file##*.}" = "fmj" ]; then \
-				echo "[$${file%%.*}]"; \
-				$(FMJ2AST) "$${file%%.*}"; \
-				$(AST2IRP) -f xml "$${file%%.*}"; \
-				$(IRP2LLVM) "$${file%%.*}"; \
-			else \
-				echo "Error: Specified file does not exist"; \
-				exit 1; \
-			fi \
-		fi; \
-	cd $(CURDIR)
-
-
 test-rpi: clean
 	@cd $(TEST_DIR); \
         	if [ -z "$(TEST)" ]; then \
@@ -127,7 +101,6 @@ run-llvm: clean
     		fi \
     	fi; \
     cd $(CURDIR)
-
 
 test-extra-run-rpi: clean
 	@cd $(TEST_DIR)/extra; \
