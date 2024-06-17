@@ -526,3 +526,35 @@ Tr_exp Tr_NewObjPos(Temp_temp obja, int pos) {
 Tr_exp Tr_AssignNewObj(Tr_exp location, Tr_exp value, T_type type) {
   return Tr_Nx(T_Move(T_Mem(unEx(location), type), unEx(value)));
 }
+
+Tr_exp Tr_AssignNewObjArray(Tr_exp arr, Tr_expList init) {
+  Tr_expList h = init;
+  int len = 0;
+  while (h) {
+    len++;
+    h = h->tail;
+  }
+  h = init;
+  Temp_temp arradd = Temp_newtemp(T_int);
+  T_stm lenset = T_Move(
+      T_Mem(T_Binop(T_plus, T_Temp(arradd), T_IntConst(-SEM_ARCH_SIZE)), T_int),
+      T_IntConst(len));
+  T_stm s = T_Seq(
+      T_Move(T_Temp(arradd),
+             T_Binop(T_plus,
+                     T_ExtCall(
+                         String("malloc"),
+                         T_ExpList(T_IntConst((len + 1) * SEM_ARCH_SIZE), NULL),
+                         T_int),
+                     T_IntConst(SEM_ARCH_SIZE))),
+      lenset);
+  for (int i = 0; i < len; i++, h = h->tail) {
+    T_stm nxt = T_Move(
+        T_Mem(T_Binop(T_plus, T_Temp(arradd),
+                      T_Binop(T_mul, T_IntConst(i), T_IntConst(SEM_ARCH_SIZE))),
+              T_int),
+        unEx(h->head));
+    s = T_Seq(s, nxt);
+  }
+  return Tr_Nx(T_Seq(s, T_Move(T_Mem(unEx(arr), T_int), T_Temp(arradd))));
+}

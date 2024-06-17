@@ -1353,7 +1353,7 @@ Tr_expList transA_NewOjbInit(S_symbol classid, Temp_temp obja) {
           case Ty_array:
             arr = transA_ExpList_NumConst(vd->elist, type->u.array);
             loc = Tr_NewObjPos(obja, i);
-            txp = Tr_ArrayInit(loc, arr);
+            txp = Tr_AssignNewObjArray(loc, arr);
             break;
         }
         txpl = Tr_ExpList(txp, txpl);
