@@ -19,7 +19,7 @@ AS_instrList regalloc(AS_instrList il, G_nodeList ig_local) {
     bool changed = TRUE;
     while (changed) changed = simplify();
     if (isFinished()) break;
-    fprintf(stderr, "Touched spill\n");
+    //fprintf(stderr, "Touched spill\n");
     spill();
   }
   color();
@@ -139,10 +139,10 @@ void spill() {
     fprintf(stderr, "Error: spill failed\n");
     exit(1);
   }
-  fprintf(stderr, "Spill temp %d\n", neighbors[s]->mytemp->num);
+  //fprintf(stderr, "Spill temp %d\n", neighbors[s]->mytemp->num);
   deal[s] = TRUE;
   spillcnt++;
-  spill_offset[neighbors[s]->mytemp->num] = spillcnt;
+  spill_offset[neighbors[s]->mytemp->num] = spillcnt * 4;
   for (int j = 0; j < neighbors[s]->adjs; j++) {
     int adj = neighbors[s]->adj[j];
     neighbors[adj]->degree--;
@@ -189,7 +189,6 @@ void modifyIL(AS_instrList il) {
       case I_LABEL:
         break;
     }
-    //fprintf(stderr, "Instruction: %s\n", assem);
     while (src) {
       Temp_temp t = src->head;
       if (colormap[t->num] == -1) {
@@ -197,8 +196,7 @@ void modifyIL(AS_instrList il) {
         int rg = getReg(t->type, TRUE);
         int offset = spill_offset[t->num];
         ir = (string) checked_malloc(IR_MAXLEN);
-        //sprintf(ir, "ldr %%r%d, [fp, #%d]", rg, offset);
-        sprintf(ir, "vmov.f32 %%r%d, %%s%d", rg, offset + 25);
+        sprintf(ir, "ldr %%r%d, [fp, #%d]", rg, offset);
         AS_instr ldr = AS_Oper(ir, NULL, NULL, NULL);
         src->head = Temp_reg(rg, t->type);
         prev->tail = AS_InstrList(ldr, il);
@@ -215,8 +213,8 @@ void modifyIL(AS_instrList il) {
         int rg = getReg(t->type, FALSE);
         int offset = spill_offset[t->num];
         ir = (string) checked_malloc(IR_MAXLEN);
-        //sprintf(ir, "str %%r%d, [fp, #%d]", rg, offset);
-        sprintf(ir, "vmov.f32 %%s%d, %%r%d", offset + 25, rg);
+        sprintf(ir, "str %%r%d, [fp, #%d]", rg, offset);
+        //sprintf(ir, "vmov.f32 %%s%d, %%r%d", offset + 25, rg);
         AS_instr str = AS_Oper(ir, NULL, NULL, NULL);
         dst->head = Temp_reg(rg, t->type);
         il->tail = AS_InstrList(str, il->tail);
