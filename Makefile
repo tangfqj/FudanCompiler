@@ -15,7 +15,7 @@ IRP2LLVM  = "$(CURDIR)/vendor/tools/irp2llvm"
 
 MAKEFLAGS = --no-print-directory
 
-.PHONY: compile clean veryclean test-llvm test-rpi handin
+.PHONY: compile clean veryclean test-llvm test-rpi handin run-llvm run-rpi try-rpi
 
 compile:
 	@cmake -G Ninja -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Release; \
@@ -102,23 +102,37 @@ run-llvm: clean
     	fi; \
     cd $(CURDIR)
 
-test-extra-run-rpi: clean
-	@cd $(TEST_DIR)/extra; \
-	for file in $$(ls .); do \
-	  	if [ "$${file##*.}" = "fmj" ]; then \
-			echo "[$${file%%.*}]"; \
-			$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
-			$(ARMCC) -mcpu=cortex-a72 "$${file%%.*}".9.s $(BUILD_DIR)/vendor/libsysy/libsysy32.s --static -o "$${file%%.*}".s && \
-            $(QEMU) -B 0x1000 "$${file%%.*}".s > "$${file%%.*}".output && \
-            echo $$?; \
-		fi \
-	done; \
-	cd $(CURDIR)
+run-rpi: clean
+	@cd $(TEST_DIR); \
+		if [ -z "$(TEST)" ]; then \
+			for file in $$(ls .); do \
+				if [ "$${file##*.}" = "fmj" ]; then \
+					echo "[$${file%%.*}]"; \
+					$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file%%.*}".fmj; \
+					$(ARMCC) -mcpu=cortex-a72 "$${file%%.*}".9.s $(BUILD_DIR)/vendor/libsysy/libsysy32.s --static -o "$${file%%.*}".s && \
+					$(QEMU) -B 0x1000 "$${file%%.*}".s > "$${file%%.*}".output && \
+					echo $$?; \
+				fi \
+			done; \
+		else \
+			file=$(TEST); \
+			if [ "$${file##*.}" = "fmj" ]; then \
+				echo "[$${file%%.*}]"; \
+				$(MAIN_EXE_RPI) "$${file%%.*}" < "$${file}"; \
+				$(ARMCC) -mcpu=cortex-a72 "$${file%%.*}".9.s $(BUILD_DIR)/vendor/libsysy/libsysy32.s --static -o "$${file%%.*}".s && \
+				$(QEMU) -B 0x1000 "$${file%%.*}".s > "$${file%%.*}".output && \
+				echo $$?; \
+			else \
+				echo "Error: Specified file does not exist"; \
+				exit 1; \
+			fi \
+		fi; \
+    cd $(CURDIR)
 
-extra-llvm:
+try-rpi:
 	@cd $(TEST_DIR)/extra; \
-	$(LLVMLINK) --opaque-pointers test.7.ssa $(BUILD_DIR)/vendor/libsysy/libsysy64.ll -S -o test.ll && \
-	$(LLI) -opaque-pointers test.ll > test.output && \
+	$(ARMCC) -mcpu=cortex-a72 test.9.s $(BUILD_DIR)/vendor/libsysy/libsysy32.s --static -o test.s && \
+	$(QEMU) -B 0x1000 test.s > test.output && \
 	echo $$?; \
 	cd $(CURDIR)
 
