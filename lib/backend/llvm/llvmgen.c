@@ -101,10 +101,10 @@ AS_instrList llvmprolog(string methodname, Temp_tempList args, T_type rettype) {
 AS_instrList llvmepilog(Temp_label lend) {
   if (!lend) return NULL;
   iList = last = NULL;
-  // string ir = (string) checked_malloc(IR_MAXLEN);
-  // sprintf(ir, "%s:", Temp_labelstring(lend));
-  // emit(AS_Label(ir, lend));
-  // emit(AS_Oper("ret i64 -1", NULL, NULL, NULL));
+  string ir = (string) checked_malloc(IR_MAXLEN);
+  sprintf(ir, "%s:", Temp_labelstring(lend));
+  emit(AS_Label(ir, lend));
+  emit(AS_Oper("ret i64 -1", NULL, NULL, NULL));
   emit(AS_Oper("}", NULL, NULL, NULL));
   return iList;
 }

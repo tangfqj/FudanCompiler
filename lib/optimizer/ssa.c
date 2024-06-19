@@ -72,20 +72,20 @@ void InitSSA(G_nodeList bg, AS_instrList bodyil) {
     tmpdef[i] = -1;
   }
   bodyil_SSA = NULL;
-  while (bodyil) {
-    AS_instr instr = bodyil->head;
-    if (instr->kind == I_LABEL) {
-      curr_block = instr->u.LABEL.label;
-    }
-    // insert into instrenv
-    if (S_look(instrenv, curr_block) == NULL) {
-      S_enter(instrenv, curr_block, AS_InstrList(instr, NULL));
-    } else {
-      AS_instrList tmp = S_look(instrenv, curr_block);
-      S_enter(instrenv, curr_block, AS_splice(tmp, AS_InstrList(instr, NULL)));
-    }
-    bodyil = bodyil->tail;
-  }
+//  while (bodyil) {
+//    AS_instr instr = bodyil->head;
+//    if (instr->kind == I_LABEL) {
+//      curr_block = instr->u.LABEL.label;
+//    }
+//    // insert into instrenv
+//    if (S_look(instrenv, curr_block) == NULL) {
+//      S_enter(instrenv, curr_block, AS_InstrList(instr, NULL));
+//    } else {
+//      AS_instrList tmp = S_look(instrenv, curr_block);
+//      S_enter(instrenv, curr_block, AS_splice(tmp, AS_InstrList(instr, NULL)));
+//    }
+//    bodyil = bodyil->tail;
+//  }
 }
 void computeDominator(G_nodeList bg) {
   while (bg) {
@@ -268,14 +268,25 @@ void placePhiFunction(G_nodeList bg) {
   }
   // Insert phi functions
   while (bg) {
+//    G_node h = bg->head;
+//    AS_block b = h->info;
+//    if (S_look(phiinstrenv, b->label)) {
+//      AS_instrList phis = S_look(phiinstrenv, b->label);
+//      AS_instrList is = S_look(instrenv, b->label);
+//      AS_instrList tmp = AS_splice(phis, is->tail);
+//      tmp = AS_InstrList(is->head, tmp);
+//      S_enter(instrenv, b->label, tmp);
+//    }
+//    bg = bg->tail;
     G_node h = bg->head;
     AS_block b = h->info;
     if (S_look(phiinstrenv, b->label)) {
       AS_instrList phis = S_look(phiinstrenv, b->label);
-      AS_instrList is = S_look(instrenv, b->label);
-      AS_instrList tmp = AS_splice(phis, is->tail);
-      tmp = AS_InstrList(is->head, tmp);
+      AS_instrList tmp = AS_splice(phis, b->instrs->tail);
+      tmp = AS_InstrList(b->instrs->head, tmp);
       S_enter(instrenv, b->label, tmp);
+    } else {
+      S_enter(instrenv, b->label, b->instrs);
     }
     bg = bg->tail;
   }
@@ -338,7 +349,6 @@ void renameVariable(G_node nd) {
         Temp_tempList phitmph = phitmp;
         for (int i = 0; i < j; ++i) phitmp = phitmp->tail;
         assert(phitmp);
-        //fprintf(stderr, "From block %s to block %s: replace %d with %d\n", S_name(b->label), S_name(yb->label), phitmp->head->num, srcVersion(phitmp->head)->num);
         phitmp->head = srcVersion(phitmp->head);
         yinstrs->head = AS_Oper(yinstr->u.OPER.assem, yinstr->u.OPER.dst, phitmph,
                                 yinstr->u.OPER.jumps);
