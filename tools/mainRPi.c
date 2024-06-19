@@ -38,7 +38,7 @@ static void print_to_arm_file(string file_arm, AS_instrList il) {
 
 static void print_to_rpi_file(string file_rpi, AS_instrList il) {
   freopen(file_rpi, "a", stdout);
-  AS_printInstrList(stdout, il, Temp_name());
+  ARM_printInstrList(stdout, il, Temp_name());
   fclose(stdout);
 }
 
@@ -243,6 +243,8 @@ int main(int argc, const char* argv[]) {
     fclose(stdout);
 
     // register allocation
+    AS_instrList ilalloc = regalloc(finalarm, ig);
+    print_to_rpi_file(file_rpi, ilalloc);
 
     fdl = fdl->tail;
   }

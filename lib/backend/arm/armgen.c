@@ -95,7 +95,7 @@ void armMunchInstr(AS_instr inst) {
   } else {
     assem = inst->u.LABEL.assem;
   }
-  fprintf(stderr, "Munch: %s\n", assem);
+  //fprintf(stderr, "Munch: %s\n", assem);
   switch (inst_type) {
     case ARM_BR:
       sprintf(ir, "b `j0");
@@ -190,7 +190,6 @@ void armMunchInstr(AS_instr inst) {
 void armMunchRet(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
-  fprintf(stderr, "In return: %s\n", assem);
 
   char* op = strtok(assem, " ");
   char* typ = strtok(NULL, " ");
