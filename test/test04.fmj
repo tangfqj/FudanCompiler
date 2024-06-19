@@ -1,6 +1,7 @@
 // test array load
 public int main() {
     float[] a={1.2,3.4,5};
+    putnum(a[0]);
     return a[1];
 }
 
