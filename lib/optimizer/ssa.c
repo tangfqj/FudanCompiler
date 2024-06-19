@@ -382,7 +382,7 @@ void eliminatePhiFunction(G_nodeList bg) {
   while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
-    if (S_look(instrenv, b->label)) {
+    if (S_look(phiinstrenv, b->label)) {
       AS_instrList instrs = S_look(phiinstrenv, b->label);
       while (instrs) {
         AS_instr instr = instrs->head;
