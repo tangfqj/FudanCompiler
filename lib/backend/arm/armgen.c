@@ -95,7 +95,7 @@ void armMunchInstr(AS_instr inst) {
   } else {
     assem = inst->u.LABEL.assem;
   }
-  //  fprintf(stderr, "Munch: %s\n", assem);
+  fprintf(stderr, "Munch: %s\n", assem);
   switch (inst_type) {
     case ARM_BR:
       sprintf(ir, "b `j0");
@@ -190,18 +190,21 @@ void armMunchInstr(AS_instr inst) {
 void armMunchRet(AS_instr inst) {
   assert(inst->kind == I_OPER);
   char* assem = inst->u.OPER.assem;
+  fprintf(stderr, "In return: %s\n", assem);
 
   char* op = strtok(assem, " ");
-  string typ = strtok(NULL, " ");
-  string ret = strtok(NULL, " ");
+  char* typ = strtok(NULL, " ");
+  char* ret = strtok(NULL, " ");
 
   string ir = (string)checked_malloc(IR_MAXLEN);
   Temp_temp r0 = Temp_reg(0, T_int);
   if (ret[0] == '%' && ret[1] == '`') {
     if (inst->u.OPER.src->head->type == T_int) {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "mov %%r0, %%`s0");
       emit(AS_Move(ir, TL(r0, NULL), inst->u.OPER.src));
     } else {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "vmov.f32 %%r0, %%`s0");
       emit(AS_Oper(ir, TL(r0, NULL), inst->u.OPER.src, NULL));
     }
@@ -212,7 +215,6 @@ void armMunchRet(AS_instr inst) {
     float ret_f = atof(ret);
     moveFloat(ret_f, TL(r0, NULL));
   }
-  //emit(AS_Oper("sub fp, sp, #32", NULL, NULL, NULL));
   // pop r4-r10, lr
   ir = (string)checked_malloc(IR_MAXLEN);
   sprintf(ir, "pop {%%r4, %%r5, %%r6, %%r7, %%r8, %%r9, %%r10, lr}");

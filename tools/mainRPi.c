@@ -91,7 +91,7 @@ int main(int argc, const char* argv[]) {
   fclose(stdout);
 
   // type checking & translate
-  T_funcDeclList fdl = transA_Prog(stderr, root, 8);
+  T_funcDeclList fdl = transA_Prog(stderr, root, 4);
 
   while (fdl) {
     T_stm s = fdl->head->stm; //get the statement list of the function
@@ -210,11 +210,11 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
-    AS_instrList bodyil_in_SSA = AS_instrList_to_SSA_LLVM(bodyil, lg, bg);
+    AS_instrList bodyil_in_SSA = AS_instrList_to_SSA_RPI(bodyil, lg, bg);
 
     //print the AS_instrList to the ssa file
     AS_instrList finalssa = AS_splice(AS_InstrList(prologi, bodyil_in_SSA), AS_InstrList(epilogi, NULL));
-    print_to_ssa_file(file_ssa, finalssa);
+    print_to_ssa_file(file_ssa, bodyil_in_SSA);
 
     // arm code generation
     AS_instrList armprologi = armprolog(prologi);

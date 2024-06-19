@@ -104,7 +104,9 @@ AS_instrList llvmepilog(Temp_label lend) {
   string ir = (string) checked_malloc(IR_MAXLEN);
   sprintf(ir, "%s:", Temp_labelstring(lend));
   emit(AS_Label(ir, lend));
-  emit(AS_Oper("ret i64 -1", NULL, NULL, NULL));
+  ir = (string)checked_malloc(IR_MAXLEN);
+  sprintf(ir, "ret i64 -1");
+  emit(AS_Oper(ir, NULL, NULL, NULL));
   emit(AS_Oper("}", NULL, NULL, NULL));
   return iList;
 }

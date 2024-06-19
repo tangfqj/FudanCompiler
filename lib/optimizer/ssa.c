@@ -47,7 +47,23 @@ AS_instrList AS_instrList_to_SSA_LLVM(AS_instrList bodyil, G_nodeList lg, G_node
 }
 
 AS_instrList AS_instrList_to_SSA_RPI(AS_instrList bodyil, G_nodeList lg, G_nodeList bg) {
-  return bodyil;
+  InitSSA(bg, bodyil);
+  // Compute dominance
+  computeDominator(bg);
+  // Compute dominance frontiers
+  computeDominanceFrontier(bg->head);
+  variablessa(lg);
+  // Compute defsites
+  computeDefsites(bodyil, lg, bg);
+  // Place phi functions
+  placePhiFunction(bg);
+  // Rename variables
+  InitRename();
+  renameVariable(bg->head);
+  // eliminate phi functions
+  eliminatePhiFunction(bg);
+  collectInstructions_arm(bg);
+  return bodyil_SSA;
 }
 void InitSSA(G_nodeList bg, AS_instrList bodyil) {
   node_num = bg->head->mygraph->nodecount;
@@ -72,20 +88,6 @@ void InitSSA(G_nodeList bg, AS_instrList bodyil) {
     tmpdef[i] = -1;
   }
   bodyil_SSA = NULL;
-//  while (bodyil) {
-//    AS_instr instr = bodyil->head;
-//    if (instr->kind == I_LABEL) {
-//      curr_block = instr->u.LABEL.label;
-//    }
-//    // insert into instrenv
-//    if (S_look(instrenv, curr_block) == NULL) {
-//      S_enter(instrenv, curr_block, AS_InstrList(instr, NULL));
-//    } else {
-//      AS_instrList tmp = S_look(instrenv, curr_block);
-//      S_enter(instrenv, curr_block, AS_splice(tmp, AS_InstrList(instr, NULL)));
-//    }
-//    bodyil = bodyil->tail;
-//  }
 }
 void computeDominator(G_nodeList bg) {
   while (bg) {
@@ -268,16 +270,6 @@ void placePhiFunction(G_nodeList bg) {
   }
   // Insert phi functions
   while (bg) {
-//    G_node h = bg->head;
-//    AS_block b = h->info;
-//    if (S_look(phiinstrenv, b->label)) {
-//      AS_instrList phis = S_look(phiinstrenv, b->label);
-//      AS_instrList is = S_look(instrenv, b->label);
-//      AS_instrList tmp = AS_splice(phis, is->tail);
-//      tmp = AS_InstrList(is->head, tmp);
-//      S_enter(instrenv, b->label, tmp);
-//    }
-//    bg = bg->tail;
     G_node h = bg->head;
     AS_block b = h->info;
     if (S_look(phiinstrenv, b->label)) {
