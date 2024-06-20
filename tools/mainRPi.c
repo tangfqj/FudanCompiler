@@ -123,6 +123,16 @@ int main(int argc, const char* argv[]) {
     fflush(stdout);
     fclose(stdout);
 
+    sl = C_traceSchedule(b);
+    freopen(file_stm, "a", stdout);
+    fprintf(stdout, "------Canonical IR Tree------\n");
+    printStm_StmList(stdout, sl, 0);
+    fprintf(stdout, "\n\n");
+    fflush(stdout);
+    fclose(stdout);
+
+    b = C_basicBlocks(sl);
+
     // llvm instruction selection
     AS_instrList prologil = llvmprolog(fdl->head->name, fdl->head->args, fdl->head->ret_type);
     AS_blockList bodybl = NULL; //making an empty body
