@@ -15,7 +15,7 @@ IRP2LLVM  = "$(CURDIR)/vendor/tools/irp2llvm"
 
 MAKEFLAGS = --no-print-directory
 
-.PHONY: compile clean veryclean test-llvm test-rpi handin run-llvm run-rpi try-rpi
+.PHONY: compile clean veryclean test-llvm test-rpi handin run-llvm run-rpi
 
 compile:
 	@cmake -G Ninja -B $(BUILD_DIR) -DCMAKE_BUILD_TYPE=Release; \
@@ -129,12 +129,6 @@ run-rpi: clean
 		fi; \
     cd $(CURDIR)
 
-try-rpi:
-	@cd $(TEST_DIR)/extra; \
-	$(ARMCC) -mcpu=cortex-a72 test.9.s $(BUILD_DIR)/vendor/libsysy/libsysy32.s --static -o test.s && \
-	$(QEMU) -B 0x1000 test.s > test.output && \
-	echo $$?; \
-	cd $(CURDIR)
 
 handin:
 	@if [ ! -f docs/report.pdf ]; then \
@@ -144,4 +138,4 @@ handin:
 	echo "请输入'学号-姓名' (例如: 12345678910-某个人)"; \
 	read filename; \
 	zip -q -r "docs/$$filename-final.zip" \
-	  include lib tools vendor test CMakeLists.txt docs/report.pdf
+	  include lib tools vendor test CMakeLists.txt Makefile README.md docs/report.pdf
