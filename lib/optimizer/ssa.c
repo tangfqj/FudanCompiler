@@ -15,6 +15,7 @@ static S_table phienv;       // phi function: block label -> Temp_tempList
 static S_table instrenv;     // block label -> AS_instrList
 static S_table rmvenv;       // block label -> AS_instrList
 static Temp_label curr_block;
+static Temp_labelList blabels;
 static int tmp_num;
 static G_nodeList defsites[1000];
 static Temp_temp temptype[1000];
@@ -40,7 +41,7 @@ AS_instrList AS_instrList_to_SSA_LLVM(AS_instrList bodyil, G_nodeList lg, G_node
   // Rename variables
   InitRename();
   renameVariable(bg->head);
-  collectInstructions_llvm(bg);
+  collectInstructions_llvm();
   return bodyil_SSA;
 }
 
@@ -60,7 +61,7 @@ AS_instrList AS_instrList_to_SSA_RPI(AS_instrList bodyil, G_nodeList lg, G_nodeL
   renameVariable(bg->head);
   // eliminate phi functions
   eliminatePhiFunction(bg);
-  collectInstructions_arm(bg);
+  collectInstructions_arm();
   return bodyil_SSA;
 }
 void InitSSA(G_nodeList bg, AS_instrList bodyil) {
@@ -84,11 +85,13 @@ void InitSSA(G_nodeList bg, AS_instrList bodyil) {
     ssa[i] = TRUE;
     tmpdef[i] = -1;
   }
+  blabels = NULL;
   Temp_label label;
   while (bodyil) {
     AS_instr instr = bodyil->head;
     if (instr->kind == I_LABEL) {
       label = instr->u.LABEL.label;
+      blabels = Temp_LabelListSplice(blabels, Temp_LabelList(label, NULL));
     }
     if (S_look(instrenv, label) == NULL) {
       S_enter(instrenv, label, AS_InstrList(instr, NULL));
@@ -98,7 +101,6 @@ void InitSSA(G_nodeList bg, AS_instrList bodyil) {
     }
     bodyil = bodyil->tail;
   }
-  bodyil_SSA = NULL;
 }
 void computeDominator(G_nodeList bg) {
   while (bg) {
@@ -409,15 +411,14 @@ void eliminatePhiFunction(G_nodeList bg) {
     bg = bg->tail;
   }
 }
-void collectInstructions_arm(G_nodeList bg) {
+void collectInstructions_arm() {
   bodyil_SSA = NULL;
-  while (bg) {
-    G_node h = bg->head;
-    AS_block b = h->info;
-    if (S_look(instrenv, b->label)) {
-      AS_instrList instrs = S_look(instrenv, b->label);
-      if (S_look(rmvenv, b->label)) {
-        AS_instrList remil = S_look(rmvenv, b->label);
+  while (blabels) {
+    Temp_label lb = blabels->head;
+    if (S_look(instrenv, lb)) {
+      AS_instrList instrs = S_look(instrenv, lb);
+      if (S_look(rmvenv, lb)) {
+        AS_instrList remil = S_look(rmvenv, lb);
         AS_instrList il = instrs;
         while (TRUE) {
           if (instrs->tail && instrs->tail->tail == NULL)
@@ -431,7 +432,7 @@ void collectInstructions_arm(G_nodeList bg) {
         bodyil_SSA = AS_splice(bodyil_SSA, instrs);
       }
     }
-    bg = bg->tail;
+    blabels = blabels->tail;
   }
   AS_instrList bh = bodyil_SSA;
   AS_instrList bf = NULL;
@@ -448,16 +449,15 @@ void collectInstructions_arm(G_nodeList bg) {
   bodyil_SSA = bh;
 }
 
-void collectInstructions_llvm(G_nodeList bg) {
+void collectInstructions_llvm() {
   bodyil_SSA = NULL;
-  while (bg) {
-    G_node h = bg->head;
-    AS_block b = h->info;
-    if (S_look(instrenv, b->label)) {
-      AS_instrList instrs = S_look(instrenv, b->label);
+  while (blabels) {
+    Temp_label lb = blabels->head;
+    if (S_look(instrenv, lb)) {
+      AS_instrList instrs = S_look(instrenv, lb);
       bodyil_SSA = AS_splice(bodyil_SSA, instrs);
     }
-    bg = bg->tail;
+    blabels = blabels->tail;
   }
 }
 /* Helper methods */
