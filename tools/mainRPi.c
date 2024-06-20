@@ -211,40 +211,39 @@ int main(int argc, const char* argv[]) {
     fclose(stdout);
 
     AS_instrList bodyil_in_SSA = AS_instrList_to_SSA_RPI(bodyil, lg, bg);
-    fprintf(stderr, "SSA finished\n");
     //print the AS_instrList to the ssa file
     AS_instrList finalssa = AS_splice(AS_InstrList(prologi, bodyil_in_SSA), AS_InstrList(epilogi, NULL));
-    print_to_ssa_file(file_ssa, bodyil_in_SSA);
+    print_to_ssa_file(file_ssa, finalssa);
 
     // arm code generation
-//    AS_instrList armprologi = armprolog(prologi);
-//    AS_instrList armbodyil = armbody(bodyil_in_SSA);
-//    AS_instrList finalarm = AS_splice(armprologi, armbodyil);
-//    print_to_arm_file(file_arm, finalarm);
-//
-//    // print interference graph
-//    G_graph fg_arm = FG_AssemFlowGraph(finalarm);
-//    freopen(file_itf, "a", stdout);
-//    fprintf(stdout, "------Flow Graph------\n");
-//    fflush(stdout);
-//    G_show(stdout, G_nodes(fg_arm), (void*)FG_show);
-//    fflush(stdout);
-//
-//    G_nodeList lg_arm = Liveness(G_nodes(fg_arm));
-//    fprintf(stdout, "/* ------Liveness Graph------*/\n");
-//    Show_Liveness(stdout, lg_arm);
-//    fflush(stdout);
-//
-//    G_nodeList ig = Create_ig(lg_arm);
-//    fprintf(stdout, "/* ------Interference Graph------*/\n");
-//    fflush(stdout);
-//    Show_ig(stdout, ig);
-//    fflush(stdout);
-//    fclose(stdout);
-//
-//    // register allocation
-//    AS_instrList ilalloc = regalloc(finalarm, ig);
-//    print_to_rpi_file(file_rpi, ilalloc);
+    AS_instrList armprologi = armprolog(prologi);
+    AS_instrList armbodyil = armbody(bodyil_in_SSA);
+    AS_instrList finalarm = AS_splice(armprologi, armbodyil);
+    print_to_arm_file(file_arm, finalarm);
+
+    // print interference graph
+    G_graph fg_arm = FG_AssemFlowGraph(finalarm);
+    freopen(file_itf, "a", stdout);
+    fprintf(stdout, "------Flow Graph------\n");
+    fflush(stdout);
+    G_show(stdout, G_nodes(fg_arm), (void*)FG_show);
+    fflush(stdout);
+
+    G_nodeList lg_arm = Liveness(G_nodes(fg_arm));
+    fprintf(stdout, "/* ------Liveness Graph------*/\n");
+    Show_Liveness(stdout, lg_arm);
+    fflush(stdout);
+
+    G_nodeList ig = Create_ig(lg_arm);
+    fprintf(stdout, "/* ------Interference Graph------*/\n");
+    fflush(stdout);
+    Show_ig(stdout, ig);
+    fflush(stdout);
+    fclose(stdout);
+
+    // register allocation
+    AS_instrList ilalloc = regalloc(finalarm, ig);
+    print_to_rpi_file(file_rpi, ilalloc);
 
     fdl = fdl->tail;
   }

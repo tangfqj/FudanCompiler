@@ -61,7 +61,7 @@ AS_instrList AS_instrList_to_SSA_RPI(AS_instrList bodyil, G_nodeList lg, G_nodeL
   // eliminate phi functions
   eliminatePhiFunction(bg);
   collectInstructions_arm(bg);
-  return bodyil;
+  return bodyil_SSA;
 }
 void InitSSA(G_nodeList bg, AS_instrList bodyil) {
   node_num = bg->head->mygraph->nodecount;
