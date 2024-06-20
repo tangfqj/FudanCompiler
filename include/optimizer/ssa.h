@@ -28,6 +28,7 @@ static bool isDominate(G_node a, G_node b); // test whether a dominates b
 static AS_instr get_ithInstr(AS_instrList asl, int i);
 static bool GnodeInGnodeList(G_node g, G_nodeList gl);
 static AS_instr makePhiFunction(Temp_temp var, G_node g);
+static void insertPhiFunction(AS_instr phi, Temp_label label);
 static bool isPhiFunction(AS_instr a);
 static int getPred(G_node g, G_nodeList gl);
 static Temp_temp srcVersion(Temp_temp tmp);

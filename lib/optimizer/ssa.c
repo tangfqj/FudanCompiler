@@ -12,7 +12,6 @@ static S_table domftrenv;    // dominate frontier: block label -> G_nodeList
 static S_table origenv;      // variable definition: block label -> Temp_tempList
 static S_table liveinenv;    // variable live-in: block label -> Temp_tempList
 static S_table phienv;       // phi function: block label -> Temp_tempList
-static S_table phiinstrenv;  // place of phi function: block label -> AS_instrList
 static S_table instrenv;     // block label -> AS_instrList
 static S_table rmvenv;       // block label -> AS_instrList
 static Temp_label curr_block;
@@ -41,7 +40,6 @@ AS_instrList AS_instrList_to_SSA_LLVM(AS_instrList bodyil, G_nodeList lg, G_node
   // Rename variables
   InitRename();
   renameVariable(bg->head);
-
   collectInstructions_llvm(bg);
   return bodyil_SSA;
 }
@@ -63,7 +61,7 @@ AS_instrList AS_instrList_to_SSA_RPI(AS_instrList bodyil, G_nodeList lg, G_nodeL
   // eliminate phi functions
   eliminatePhiFunction(bg);
   collectInstructions_arm(bg);
-  return bodyil_SSA;
+  return bodyil;
 }
 void InitSSA(G_nodeList bg, AS_instrList bodyil) {
   node_num = bg->head->mygraph->nodecount;
@@ -77,7 +75,6 @@ void InitSSA(G_nodeList bg, AS_instrList bodyil) {
   origenv = S_empty();
   liveinenv = S_empty();
   phienv = S_empty();
-  phiinstrenv = S_empty();
   instrenv = S_empty();
   rmvenv = S_empty();
   tmp_num = 0;
@@ -86,6 +83,20 @@ void InitSSA(G_nodeList bg, AS_instrList bodyil) {
     temptype[i] = NULL;
     ssa[i] = TRUE;
     tmpdef[i] = -1;
+  }
+  Temp_label label;
+  while (bodyil) {
+    AS_instr instr = bodyil->head;
+    if (instr->kind == I_LABEL) {
+      label = instr->u.LABEL.label;
+    }
+    if (S_look(instrenv, label) == NULL) {
+      S_enter(instrenv, label, AS_InstrList(instr, NULL));
+    } else {
+      AS_instrList prev = S_look(instrenv, label);
+      S_enter(instrenv, label, AS_splice(prev, AS_InstrList(instr, NULL)));
+    }
+    bodyil = bodyil->tail;
   }
   bodyil_SSA = NULL;
 }
@@ -251,12 +262,7 @@ void placePhiFunction(G_nodeList bg) {
             Temp_TempInTempList(ytmp, iny) == TRUE && ssa[ytmp->num] == FALSE) {
           // insert a = phi(a,...a) at the top of block y
           AS_instr phiInstr = makePhiFunction(ytmp, y);
-          if (S_look(phiinstrenv, yb->label) == NULL) {
-            S_enter(phiinstrenv, yb->label, AS_InstrList(phiInstr, NULL));
-          } else {
-            AS_instrList tmp = S_look(phiinstrenv, yb->label);
-            S_enter(phiinstrenv, yb->label, AS_InstrList(phiInstr, tmp));
-          }
+          insertPhiFunction(phiInstr, yb->label);
           phiy = Temp_TempList(ytmp, phiy);
           S_enter(phienv, yb->label, phiy);
           Temp_tempList origy = S_look(origenv, yb->label);
@@ -267,20 +273,6 @@ void placePhiFunction(G_nodeList bg) {
         df = df->tail;
       }
     }
-  }
-  // Insert phi functions
-  while (bg) {
-    G_node h = bg->head;
-    AS_block b = h->info;
-    if (S_look(phiinstrenv, b->label)) {
-      AS_instrList phis = S_look(phiinstrenv, b->label);
-      AS_instrList tmp = AS_splice(phis, b->instrs->tail);
-      tmp = AS_InstrList(b->instrs->head, tmp);
-      S_enter(instrenv, b->label, tmp);
-    } else {
-      S_enter(instrenv, b->label, b->instrs);
-    }
-    bg = bg->tail;
   }
 }
 
@@ -382,8 +374,8 @@ void eliminatePhiFunction(G_nodeList bg) {
   while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
-    if (S_look(phiinstrenv, b->label)) {
-      AS_instrList instrs = S_look(phiinstrenv, b->label);
+    if (S_look(instrenv, b->label)) {
+      AS_instrList instrs = S_look(instrenv, b->label);
       while (instrs) {
         AS_instr instr = instrs->head;
         if (isPhiFunction(instr)) {
@@ -418,6 +410,7 @@ void eliminatePhiFunction(G_nodeList bg) {
   }
 }
 void collectInstructions_arm(G_nodeList bg) {
+  bodyil_SSA = NULL;
   while (bg) {
     G_node h = bg->head;
     AS_block b = h->info;
@@ -456,6 +449,7 @@ void collectInstructions_arm(G_nodeList bg) {
 }
 
 void collectInstructions_llvm(G_nodeList bg) {
+  bodyil_SSA = NULL;
   while (bg) {
     G_node h = bg->head;
     AS_block b = h->info;
@@ -545,6 +539,15 @@ static AS_instr makePhiFunction(Temp_temp var, G_node g) {
   return AS_Oper(ir, Temp_TempList(var, NULL), src, AS_Targets(tll));
 }
 
+static void insertPhiFunction(AS_instr phi, Temp_label label) {
+  if (S_look(instrenv, label)) {
+    AS_instrList prev = S_look(instrenv, label);
+    AS_instrList curr = AS_splice(AS_InstrList(phi, NULL), prev->tail);
+    S_enter(instrenv, label, AS_InstrList(prev->head, curr));
+  } else {
+    S_enter(instrenv, label, AS_InstrList(phi, NULL));
+  }
+}
 static bool isPhiFunction(AS_instr a) {
   string assem = NULL;
   if (a->kind == I_OPER) {
@@ -683,9 +686,9 @@ void testPhi(G_nodeList bg) {
   while (bg) {
     G_node curr = bg->head;
     AS_block b = curr->info;
-    if (S_look(phiinstrenv, b->label)) {
+    if (S_look(instrenv, b->label)) {
       fprintf(stderr, "Phi function at block %s:\n", S_name(b->label));
-      AS_instrList instrs = S_look(phiinstrenv, b->label);
+      AS_instrList instrs = S_look(instrenv, b->label);
       while (instrs) {
         fprintf(stderr, "%s\n", instrs->head->u.OPER.assem);
         instrs = instrs->tail;
