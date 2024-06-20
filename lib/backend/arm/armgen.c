@@ -502,7 +502,7 @@ void armMunchCall(AS_instr inst) {
     typ = strtok(NULL, " ");
     if (!typ) break;
     char* src = strtok(NULL, ",)");
-    if (!strcmp(typ, "i64")) {
+    if (!strcmp(typ, "i64") || !strcmp(typ, "i64*")) {
       if (src[0] == '%' && src[1] == '`') {
         ir = (string)checked_malloc(IR_MAXLEN);
         sprintf(ir, "mov %%r%d, %%`s0", i);
@@ -576,7 +576,7 @@ void armMunchExtCall(AS_instr inst) {
     typ = strtok(NULL, " ");
     if (!typ) break;
     char* src = strtok(NULL, ",)");
-    if (!strcmp(typ, "i64")) {
+    if (!strcmp(typ, "i64") || !strcmp(typ, "i64*")) {
       if (src[0] == '%' && src[1] == '`') {
         ir = (string)checked_malloc(IR_MAXLEN);
         sprintf(ir, "mov %%r%d, %%`s0", i);
