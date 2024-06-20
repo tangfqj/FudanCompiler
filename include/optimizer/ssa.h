@@ -20,8 +20,8 @@ void placePhiFunction(G_nodeList bg);
 void InitRename();
 void renameVariable(G_node nd);
 void eliminatePhiFunction(G_nodeList bg);
-void collectInstructions_llvm();
-void collectInstructions_arm();
+void collectInstructions_llvm(G_nodeList bg);
+void collectInstructions_arm(G_nodeList bg);
 /* Helper methods */
 static G_nodeList Intersect(G_nodeList a, G_nodeList b);
 static bool isDominate(G_node a, G_node b); // test whether a dominates b
