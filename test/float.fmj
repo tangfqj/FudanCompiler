@@ -3,6 +3,10 @@ public int main() {
   int[] a = {6, 3, 0, 5, 9, 1, 2, 1.2345};
   float j = 0.3;
   float[] b = {1.3, 0.3, .3, 0., .1, 666};
+  putnum(a[2]);
+  putch(10);
+  putnum(b[3]);
+  putch(10);
   return 0;
 }
 
