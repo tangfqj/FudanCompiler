@@ -518,16 +518,20 @@ Temp_temp llvmMunchBinop(Temp_temp ret, T_exp e) {
         break;
     }
     if (!s0 && !s1) {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s i64 %d, %d", op, e->u.BINOP.left->u.CONST.i,
               e->u.BINOP.right->u.CONST.i);
       emit(AS_Oper(ir, TL(ret, NULL), NULL, NULL));
     } else if (!s0) {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s i64 %d, %%`s0", op, e->u.BINOP.left->u.CONST.i);
       emit(AS_Oper(ir, TL(ret, NULL), TL(s1, NULL), NULL));
     } else if (!s1) {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s i64 %%`s0, %d", op, e->u.BINOP.right->u.CONST.i);
       emit(AS_Oper(ir, TL(ret, NULL), TL(s0, NULL), NULL));
     } else {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s i64 %%`s0, %%`s1", op);
       emit(AS_Oper(ir, TL(ret, NULL),
                    TL(s0, TL(s1, NULL)), NULL));
@@ -554,16 +558,20 @@ Temp_temp llvmMunchBinop(Temp_temp ret, T_exp e) {
         break;
     }
     if (!s0 && !s1) {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s double %f, %f", op, e->u.BINOP.left->u.CONST.f,
               e->u.BINOP.right->u.CONST.f);
       emit(AS_Oper(ir, TL(ret, NULL), NULL, NULL));
     } else if (!s0) {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s double %f, %%`s0", op, e->u.BINOP.left->u.CONST.f);
       emit(AS_Oper(ir, TL(ret, NULL), TL(s1, NULL), NULL));
     } else if (!s1) {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s double %%`s0, %f", op, e->u.BINOP.right->u.CONST.f);
       emit(AS_Oper(ir, TL(ret, NULL), TL(s0, NULL), NULL));
     } else {
+      ir = (string)checked_malloc(IR_MAXLEN);
       sprintf(ir, "%%`d0 = %s double %%`s0, %%`s1", op);
       emit(AS_Oper(ir, TL(ret, NULL),
                    TL(s0, TL(s1, NULL)), NULL));

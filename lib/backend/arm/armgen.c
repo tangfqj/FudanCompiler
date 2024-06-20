@@ -232,11 +232,13 @@ void armMunchAdd(AS_instr inst) {
   string leftOperand = strtok(NULL, ", ");
   string rightOperand = strtok(NULL, ", ");
   Temp_temp left = NULL, right = NULL;
+  Temp_tempList src = inst->u.OPER.src;
   if (leftOperand[0] == '%' && leftOperand[1] == '`') {
-    left = inst->u.OPER.src->head;
+    left = src->head;
+    src = src->tail;
   }
   if (rightOperand[0] == '%' && rightOperand[1] == '`') {
-    right = inst->u.OPER.src->tail->head;
+    right = src->head;
   }
 
   string ir = (string)checked_malloc(IR_MAXLEN);
@@ -274,11 +276,13 @@ void armMunchSub(AS_instr inst) {
   string leftOperand = strtok(NULL, ", ");
   string rightOperand = strtok(NULL, ", ");
   Temp_temp left = NULL, right = NULL;
+  Temp_tempList src = inst->u.OPER.src;
   if (leftOperand[0] == '%' && leftOperand[1] == '`') {
-    left = inst->u.OPER.src->head;
+    left = src->head;
+    src = src->tail;
   }
   if (rightOperand[0] == '%' && rightOperand[1] == '`') {
-    right = inst->u.OPER.src->tail->head;
+    right = src->head;
   }
 
   string ir = (string)checked_malloc(IR_MAXLEN);
@@ -338,11 +342,13 @@ void armMunchMul(AS_instr inst) {
   string leftOperand = strtok(NULL, ", ");
   string rightOperand = strtok(NULL, ", ");
   Temp_temp left = NULL, right = NULL;
+  Temp_tempList src = inst->u.OPER.src;
   if (leftOperand[0] == '%' && leftOperand[1] == '`') {
-    left = inst->u.OPER.src->head;
+    left = src->head;
+    src = src->tail;
   }
   if (rightOperand[0] == '%' && rightOperand[1] == '`') {
-    right = inst->u.OPER.src->tail->head;
+    right = src->head;
   }
 
   string ir = (string)checked_malloc(IR_MAXLEN);
@@ -378,11 +384,13 @@ void armMunchDiv(AS_instr inst) {
   string leftOperand = strtok(NULL, ", ");
   string rightOperand = strtok(NULL, ", ");
   Temp_temp left = NULL, right = NULL;
+  Temp_tempList src = inst->u.OPER.src;
   if (leftOperand[0] == '%' && leftOperand[1] == '`') {
-    left = inst->u.OPER.src->head;
+    left = src->head;
+    src = src->tail;
   }
   if (rightOperand[0] == '%' && rightOperand[1] == '`') {
-    right = inst->u.OPER.src->tail->head;
+    right = src->head;
   }
 
   int left_num, right_num;
@@ -559,7 +567,11 @@ void armMunchCall(AS_instr inst) {
   callerSaveRet();
 
   Temp_temp r0 = Temp_reg(0, T_int);
-  if (ret == T_int) {
+  if (!strcmp(meth, "@getfloat")) {
+    ir = (string)checked_malloc(IR_MAXLEN);
+    sprintf(ir, "vmov.f32 %%`d0, %%`s0");
+    emit(AS_Move(ir, inst->u.OPER.dst, TL(Temp_reg(0, T_float), NULL)));
+  } else if (ret == T_int) {
     ir = (string)checked_malloc(IR_MAXLEN);
     sprintf(ir, "mov %%`d0, %%r0");
     emit(AS_Move(ir, inst->u.OPER.dst, TL(r0, NULL)));
@@ -701,11 +713,13 @@ void armMunchFcmp(AS_instr inst) {
   string leftOperand = strtok(NULL, ", ");
   string rightOperand = strtok(NULL, ", ");
   Temp_temp left = NULL, right = NULL;
+  Temp_tempList src = inst->u.OPER.src;
   if (leftOperand[0] == '%' && leftOperand[1] == '`') {
-    left = inst->u.OPER.src->head;
+    left = src->head;
+    src = src->tail;
   }
   if (rightOperand[0] == '%' && rightOperand[1] == '`') {
-    right = inst->u.OPER.src->tail->head;
+    right = src->head;
   }
 
   string ir = (string)checked_malloc(IR_MAXLEN);
@@ -758,11 +772,13 @@ void armMunchFbinop(AS_instr inst, string bop) {
   string leftOperand = strtok(NULL, ", ");
   string rightOperand = strtok(NULL, ", ");
   Temp_temp left = NULL, right = NULL;
+  Temp_tempList src = inst->u.OPER.src;
   if (leftOperand[0] == '%' && leftOperand[1] == '`') {
-    left = inst->u.OPER.src->head;
+    left = src->head;
+    src = src->tail;
   }
   if (rightOperand[0] == '%' && rightOperand[1] == '`') {
-    right = inst->u.OPER.src->tail->head;
+    right = src->head;
   }
 
   string ir = (string)checked_malloc(IR_MAXLEN);
