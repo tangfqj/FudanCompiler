@@ -214,7 +214,6 @@ void modifyIL(AS_instrList il) {
         int offset = spill_offset[t->num];
         ir = (string) checked_malloc(IR_MAXLEN);
         sprintf(ir, "str %%r%d, [fp, #%d]", rg, offset);
-        //sprintf(ir, "vmov.f32 %%s%d, %%r%d", offset + 25, rg);
         AS_instr str = AS_Oper(ir, NULL, NULL, NULL);
         dst->head = Temp_reg(rg, t->type);
         il->tail = AS_InstrList(str, il->tail);
@@ -300,7 +299,7 @@ int getReg(T_type type, bool is_src) {
       spill_int[1] = FALSE;
       return 8;
     }
-    if (!spill_int[0]){
+    if (spill_int[0] == TRUE){
       spill_int[1] = TRUE;
       return 9;
     }

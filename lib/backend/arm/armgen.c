@@ -286,49 +286,27 @@ void armMunchSub(AS_instr inst) {
   }
 
   string ir = (string)checked_malloc(IR_MAXLEN);
-  if (left && right) {
-    ir = (string)checked_malloc(IR_MAXLEN);
-    sprintf(ir, "sub %%`d0, %%`s0, %%`s1");
-    emit(AS_Oper(ir, inst->u.OPER.dst, TL(left, TL(right, NULL)), NULL));
-    return;
-  }
 
   int left_num, right_num;
   if (!left && !right) {
+    left = Temp_newtemp(T_int);
     left_num = atoi(leftOperand);
+    moveInt(left_num, TL(left, NULL));
+    right = Temp_newtemp(T_int);
     right_num = atoi(rightOperand);
-    if (left_num == 0) {
-      Temp_temp rtmp = Temp_newtemp(T_int);
-      moveInt(right_num, TL(rtmp, NULL));
-      ir = (string)checked_malloc(IR_MAXLEN);
-      sprintf(ir, "rsb %%`d0, %%`s0, #0");
-      emit(AS_Oper(ir, inst->u.OPER.dst, TL(rtmp, NULL), NULL));
-      return;
-    }
-    Temp_temp ltmp = Temp_newtemp(T_int);
-    moveInt(left_num, TL(ltmp, NULL));
-    ir = (string)checked_malloc(IR_MAXLEN);
-    sprintf(ir, "sub %%`d0, %%`s0, #%d", right_num);
-    emit(AS_Oper(ir, inst->u.OPER.dst, TL(ltmp, NULL), NULL));
+    moveInt(right_num, TL(right, NULL));
   } else if (!left) {
     left_num = atoi(leftOperand);
-    ir = (string)checked_malloc(IR_MAXLEN);
-    sprintf(ir, "rsb %%`d0, %%`s0, #%d", left_num);
-    emit(AS_Oper(ir, inst->u.OPER.dst, TL(right, NULL), NULL));
+    left = Temp_newtemp(T_int);
+    moveInt(left_num, TL(left, NULL));
   } else if (!right) {
     right_num = atoi(rightOperand);
-    if (right_num == 0) {
-      ir = (string)checked_malloc(IR_MAXLEN);
-      sprintf(ir, "mov %%`d0, %%`s0");
-      emit(AS_Oper(ir, inst->u.OPER.dst, TL(left, NULL), NULL));
-      return;
-    }
-    Temp_temp rtmp = Temp_newtemp(T_int);
-    moveInt(right_num, TL(rtmp, NULL));
-    ir = (string)checked_malloc(IR_MAXLEN);
-    sprintf(ir, "sub %%`d0, %%`s0, %%`s1");
-    emit(AS_Move(ir, inst->u.OPER.dst, TL(left, TL(rtmp, NULL))));
+    right = Temp_newtemp(T_int);
+    moveInt(right_num, TL(right, NULL));
   }
+  ir = (string)checked_malloc(IR_MAXLEN);
+  sprintf(ir, "sub %%`d0, %%`s0, %%`s1");
+  emit(AS_Oper(ir, inst->u.OPER.dst, TL(left, TL(right, NULL)), NULL));
 }
 
 void armMunchMul(AS_instr inst) {
