@@ -52,10 +52,10 @@ ExpRest -> ',' Exp
 
 The semantic of an FDMJ program with the above grammar is similar to that for programming language of C and Java. Here we give a few notes about it:
 
-- The root of the grammar is \verb|Program|.
-- The binary operations (\verb|op|) are $+, -, *, /, ||, \&\&, <, <=, >, >=, ==, !=$.
-- `CONST` is either an integer `(+|-)[0-9]+` or a float number \verb|(+|-)[0-9]*.[0-9]+|.
-- \verb|id| is any string consisting of [a-z], [A-Z], [0-9] and \_ (the underscore) of any length.
-- Boolean binary operations (\verb|||| and \verb|&&|) follow the "shortcut" semantics. For example, in \verb|(true || ({a=1;} false))|, \verb|a=1| is not executed.
+- The root of the grammar is `Program`.
+- The binary operations (`op`) are `+, -, *, /, ||, &&, <, <=, >, >=, ==, !=`.
+- `CONST` is either an integer `(+|-)[0-9]+` or a float number `(+|-)[0-9]*.[0-9]+`.
+- `id` is any string consisting of `[a-z], [A-Z], [0-9]` and `_` (the underscore) of any length.
+- Boolean binary operations (`||` and `&&`) follow the "shortcut" semantics. For example, in `(true || ({a=1;} false))`, `a=1` is not executed.
 - All variables in a class are taken as “public” variables (as defined in Java).
 - A subclass inherits all the methods and variables from its superclass (if any, recursively). To simplify, we assume that a subclass may override methods declared in its ancestor classes, but must have the same signature (i.e., the same list of types, albeit may use different id’s). And a variable declared in a subclass cannot use the same id as any variable declared in any of its ancestor classes.
