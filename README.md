@@ -2,7 +2,7 @@
 
 This repo implements a compiler for a custom language called FDMJ. The compiler is able to compile FDMJ programs into LLVM instructions and RPi instructions. The LLVM instructions can be executed by `lli`, while the RPi instructions can be executed on `qemu`.
 
-The grammar and specifications of FDMJ can be found [here](docs/FDMJ-Grammar.md).
+The grammar and specifications of FDMJ can be found [here](INSTALL.md).
 
 
 ## 🛠️ Setup
